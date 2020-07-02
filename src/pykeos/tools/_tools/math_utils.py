@@ -13,3 +13,7 @@ def n_ball_volume(dim, norm):
 
 def nd_rand_init(*tuples_lo_hi):
     return np.random.uniform(low=[t[0] for t in tuples_lo_hi], high=[t[1] for t in tuples_lo_hi])
+
+
+def make_uniform_kernel(dim, norm_p):
+    return lambda u: 1./n_ball_volume(dim, norm_p) if u <= 1 else 0.

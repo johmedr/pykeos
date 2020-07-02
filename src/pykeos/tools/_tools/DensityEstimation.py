@@ -1,13 +1,9 @@
 import numpy as np
 
-from .math_utils import n_ball_volume
+from .._tools import make_uniform_kernel
 
 
 class DensityEstimation:
-    @staticmethod
-    def make_uniform_kernel(dim, norm_p):
-        return lambda u: 1./n_ball_volume(dim, norm_p) if u <= 1 else 0.
-
     def __init__(self, Xi, h='auto', kernel=None, norm_p=None):
         '''
         Xi is (npoints, dim)
@@ -15,7 +11,7 @@ class DensityEstimation:
         self.Xi = Xi if len(Xi.shape) == 2 else Xi.reshape((-1, 1))
         self.n_points, self.dim = self.Xi.shape
         self.norm_p = norm_p if norm_p is not None else 2
-        self.kernel = kernel if kernel is not None else DensityEstimation.make_uniform_kernel(self.dim, self.norm_p)
+        self.kernel = kernel if kernel is not None else make_uniform_kernel(self.dim, self.norm_p)
         self.h = h if h != "auto" else DensityEstimation._rule_of_thumb(self.Xi)
 
     @staticmethod
