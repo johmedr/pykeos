@@ -19,6 +19,7 @@ class AbstractBaseSys(ABC):
         self.time_vec = None
 
         self.rand_init = init_func if callable(init_func) else None
+        self._initial_state = None
 
         if not callable(map_func):
             raise ValueError()
@@ -38,6 +39,19 @@ class AbstractBaseSys(ABC):
         assert (new_states.shape[-1] == self.dim)
         self._states = new_states
 
+    @property
+    def initial_state(self):
+        if self._initial_state is None:
+            if not callable(self.rand_init):
+                raise ValueError("Either x0 or an initialization function must be provided")
+            else:
+                self._initial_state = self.rand_init()
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, x0):
+        self._initial_state = x0
+
     @abstractmethod
     def integrate(self, *args, **kwargs):
         pass
@@ -50,8 +64,8 @@ class AbstractBaseSys(ABC):
             fig = go.Figure()
 
         if self.dim == 1:
-            fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None
-                                    else np.arange(self.n_points), y=self.states, mode='lines', **trace_kwargs))
+            fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
+                                     y=self.states[:, 0], mode='lines', **trace_kwargs))
         elif self.dim == 2:
             fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs))
         elif self.dim == 3:
@@ -69,11 +83,8 @@ class AbstractBaseSys(ABC):
 
 class DiscreteSys(AbstractBaseSys):
     def integrate(self, n_points=None, x0=None, update_states=True):
-        if x0 is None:
-            if not callable(self.rand_init):
-                raise ValueError("Either x0 or an initialization function must be provided")
-            else:
-                x0 = self.rand_init()
+        if x0 is not None:
+            self.initial_state = x0
 
         if n_points is None:
             if self.n_points is None:
@@ -81,7 +92,7 @@ class DiscreteSys(AbstractBaseSys):
             else:
                 n_points = self.n_points
 
-        states = [x0 if x0 is not None else self.rand_init]
+        states = [self.initial_state]
 
         for i in range(n_points - 1):
             states.append(self.time_map(states[i]))
@@ -106,12 +117,8 @@ class ContinuousSys(AbstractBaseSys):
             self.time_vec = None
 
     def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
-
-        if x0 is None:
-            if not callable(self.rand_init):
-                raise ValueError("Either x0 or an initialization function must be provided")
-            else:
-                x0 = self.rand_init()
+        if x0 is not None:
+            self.initial_state = x0
 
         if time_vec is None:
             if self.time_vec is None:
@@ -119,7 +126,7 @@ class ContinuousSys(AbstractBaseSys):
             else:
                 time_vec = self.time_vec
 
-        states = odeint(self.time_map, x0, time_vec, **odeint_kwargs)
+        states = odeint(self.time_map, self.initial_state, time_vec, **odeint_kwargs)
 
         if update_states:
             self.states = states
