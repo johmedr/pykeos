@@ -4,6 +4,7 @@ import numpy as np
 from .._systems import ContinuousSys
 from src.pykeos.tools import nd_rand_init
 
+
 class Lorenz(ContinuousSys):
     def __init__(self, sigma=10., beta=8. / 3, rho=28., n_points=1000, t_min=0, t_max=20):
         def ode(X, t):

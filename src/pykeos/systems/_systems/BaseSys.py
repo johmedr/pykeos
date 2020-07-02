@@ -87,7 +87,7 @@ class DiscreteSys(AbstractBaseSys):
 
 class ContinuousSys(AbstractBaseSys):
     def __init__(self, dim: int, map_func, init_func=None, n_points=None, t_min=None, t_max=None):
-        super().__init__(dim, map_func, init_func)
+        super().__init__(dim, map_func, init_func, n_points=n_points)
 
         if None not in [n_points, t_min, t_max]:
             self.time_vec = np.linspace(t_min, t_max, n_points)
