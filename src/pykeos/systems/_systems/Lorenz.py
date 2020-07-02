@@ -2,7 +2,7 @@ import numpy as np
 
 
 from .._systems import ContinuousSys
-
+from src.pykeos.tools import nd_rand_init
 
 class Lorenz(ContinuousSys):
     def __init__(self, sigma=10., beta=8. / 3, rho=28., n_points=1000, t_min=0, t_max=20):
@@ -15,10 +15,7 @@ class Lorenz(ContinuousSys):
             ])
 
         def rand_init():
-            U = [[-20, 20], [-30, 30], [10, 40]]
-            mins = [u[0] for u in U]
-            maxs = [u[1] for u in U]
-            return np.random.uniform(low=mins, high=maxs)
+            return nd_rand_init([-20, 20], [-30, 30], [10, 40])
 
         super().__init__(dim=3, map_func=ode, init_func=rand_init, n_points=n_points, t_min=t_min, t_max=t_max)
 
