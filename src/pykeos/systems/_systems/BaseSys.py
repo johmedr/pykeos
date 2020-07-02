@@ -10,9 +10,13 @@ class AbstractBaseSys(ABC):
         :param dim:
         :param x0: (npoints, dim)
         """
+        if dim < 1:
+            raise ValueError("Incorrect number of dimensions")
+
         self.dim = dim
         self.states = None
-        self.n_points = None
+        self.n_points = n_points
+        self.time_vec = None
 
         self.rand_init = init_func if callable(init_func) else None
 
@@ -25,7 +29,7 @@ class AbstractBaseSys(ABC):
         pass
 
     def make_plot(self, show=True, fig=None, **trace_kwargs):
-        if self.dim > 3 or self.dim < 2:
+        if self.dim > 3:
             raise NotImplementedError()
 
         if self.states is None:
@@ -37,10 +41,14 @@ class AbstractBaseSys(ABC):
         if fig is None:
             fig = go.Figure()
 
-        if self.dim == 2:
+        if self.dim == 1:
+            fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None
+                                    else np.arange(self.n_points), y=self.states, mode='lines', **trace_kwargs))
+        elif self.dim == 2:
             fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs))
         elif self.dim == 3:
-            fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode='lines', **trace_kwargs))
+            fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode='lines',
+                                       **trace_kwargs))
 
         if show:
             fig.show()
