@@ -2,7 +2,7 @@ import numpy as np
 
 
 from .._systems import ContinuousSys
-from src.pykeos.tools import nd_rand_init
+from pykeos.tools import nd_rand_init
 
 
 class Lorenz(ContinuousSys):

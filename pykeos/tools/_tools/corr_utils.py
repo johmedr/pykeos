@@ -1,4 +1,5 @@
 import numpy as np
+from .._tools import n_ball_volume
 
 
 def _fast_count_row_1d(x, traj, r, norm_p):
@@ -48,4 +49,5 @@ def dsty_est(x, samples, r, norm_p=1):
     elif len(x.shape) == 2:
         assert(x.shape[1] == samples.shape[1])
 
-    return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64)  / samples.shape[0]
+    return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64) / (n_ball_volume(dim, norm_p) * r**dim * samples.shape[0])
+
