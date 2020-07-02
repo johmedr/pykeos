@@ -14,7 +14,7 @@ class AbstractBaseSys(ABC):
             raise ValueError("Incorrect number of dimensions")
 
         self.dim = dim
-        self.states = None
+        self._states = None
         self.n_points = n_points
         self.time_vec = None
 
@@ -24,6 +24,20 @@ class AbstractBaseSys(ABC):
             raise ValueError()
         self.time_map = map_func
 
+    @property
+    def states(self):
+        if self._states is None:
+            try:
+                self.integrate()
+            except ValueError:
+                raise ValueError("Cannot integrate - call integrate manually with keyword update_states=True.")
+        return self._states
+
+    @states.setter
+    def states(self, new_states):
+        assert (new_states.shape[-1] == self.dim)
+        self._states = new_states
+
     @abstractmethod
     def integrate(self, *args, **kwargs):
         pass
@@ -31,12 +45,6 @@ class AbstractBaseSys(ABC):
     def make_plot(self, show=True, fig=None, **trace_kwargs):
         if self.dim > 3:
             raise NotImplementedError()
-
-        if self.states is None:
-            try:
-                self.integrate()
-            except ValueError:
-                raise ValueError("Cannot integrate - call integrate manually with keyword update_states=True.")
 
         if fig is None:
             fig = go.Figure()
@@ -54,6 +62,9 @@ class AbstractBaseSys(ABC):
             fig.show()
 
         return fig
+
+    def delay_coordinates(self, dim, lag=1, axis=0):
+        return np.vstack([self.states[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
 
 
 class DiscreteSys(AbstractBaseSys):
