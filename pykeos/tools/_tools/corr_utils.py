@@ -51,3 +51,14 @@ def dsty_est(x, samples, r, norm_p=1):
 
     return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64) / (n_ball_volume(dim, norm_p) * r**dim * samples.shape[0])
 
+
+def rule_of_thumb(x):
+    n = x.shape[0]
+    d = 1
+    if len(x.shape) == 2:
+        d = x.shape[1]
+
+    std = x.std(axis=0) if d == 1 else np.sum(np.diag(np.cov(x)))
+
+    return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+
