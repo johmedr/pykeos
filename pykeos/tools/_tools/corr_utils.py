@@ -1,5 +1,5 @@
 import numpy as np
-from .._tools import n_ball_volume
+from .._tools import n_ball_volume, n_sphere_area
 from nolds.measures import poly_fit
 
 import plotly.graph_objs as go
@@ -58,18 +58,23 @@ def dsty_est(x, samples, r, norm_p=1):
     return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64) / (n_ball_volume(dim, norm_p) * r**dim * samples.shape[0])
 
 
-def rule_of_thumb(x: np.ndarray) -> float:
+def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
     n = x.shape[0]
     d = 1
     if len(x.shape) == 2:
         d = x.shape[1]
 
-    std = x.std(axis=0) if d == 1 else np.sqrt(np.trace(np.cov(x.T)))
-
-    return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+    std = np.sqrt(x.var(axis=0).mean())
 
 
-def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True, hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True) -> float:
+    # version 1
+    # return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+    # version 2
+    return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
+
+
+def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True) -> float:
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -120,6 +125,24 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
 
     return poly[0]
 
+
+def approximate_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, full_output=False, plot=False, fig=None, show=True):
+
+    if len(x.shape) == 1:
+        x = x[:, np.newaxis]
+
+    dim = x.shape[1]
+    n_points = x.shape[0]
+
+    if r_opt is None:
+        r_opt = rule_of_thumb(x, norm_p=norm_p)
+        # print("selecting r_opt=%.3f"%r_opt )
+
+    rho_x = dsty_est(x, samples=x, r=r_opt, norm_p=norm_p) - 1 / n_points
+    if not full_output:
+        return (r_opt / corr_sum(x, r_opt, norm_p=norm_p)) * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
+    else:
+        raise NotImplementedError
 
 # def corr_dim(x):
 #
