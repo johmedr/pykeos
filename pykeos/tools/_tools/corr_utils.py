@@ -38,6 +38,7 @@ def corr_sum(traj, r, norm_p=1, allow_equals=False):
         return (_fast_count_traj(traj, r, norm_p).astype(np.float64) - traj.shape[0]) /\
                (traj.shape[0] * (traj.shape[0] - 1))
 
+
 def dsty_est(x, samples, r, norm_p=1):
     if len(samples.shape) == 1:
         samples = samples[:, np.newaxis]
@@ -74,7 +75,7 @@ def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
-                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True) -> float:
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False):
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -87,12 +88,12 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
             rvals = np.linspace(rmin, rmax, nr)
 
         else:
-            rvals = np.logspace(- np.log10(x.shape[0]) + np.log10(x.std()), 1 + np.log10(x.std()), nr)
+            rvals = np.logspace(- np.log(x.shape[0]) + np.log(x.std()) - 2, 5 + np.log(x.std()), nr, base=np.exp(1))
     # print(rvals)
     csums = np.asarray([corr_sum(x, r) for r in rvals])
     # print(csums)
-    orig_log_csums = np.log10(csums[csums > 0])
-    orig_log_rvals = np.log10(rvals[csums > 0])
+    orig_log_csums = np.log(csums[csums > 0])
+    orig_log_rvals = np.log(rvals[csums > 0])
 
     log_csums = np.asarray(orig_log_csums)
     log_rvals = np.asarray(orig_log_rvals)
@@ -117,13 +118,17 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
         if fig is None:
             fig = go.Figure()
         fig.add_trace(go.Scatter(x=orig_log_rvals, y=orig_log_csums, name="log(C(r)) vs log(r)"))
-        fig.add_trace(go.Scatter(x=orig_log_rvals, y=poly[1] + log_rvals * poly[0],
-                                 name="%.2f log(r) + %.2f"%(poly[0], poly[1])))
+        fig.add_trace(go.Scatter(x=orig_log_rvals, y=poly[1] + orig_log_rvals * poly[0],
+                                 name="%.2f log(r) + %.2f"%(poly[0], poly[1]), line=dict(dash="dash"),
+                                 marker=dict(symbol="x-thin")))
 
         if show:
             fig.show()
 
-    return poly[0]
+    if full_output:
+        return [orig_log_rvals, orig_log_csums, poly]
+    else:
+        return poly[0]
 
 
 def approximate_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, full_output=False, plot=False, fig=None, show=True):
