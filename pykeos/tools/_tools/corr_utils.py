@@ -69,9 +69,9 @@ def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
 
 
     # version 1
-    # return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+    return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
     # version 2
-    return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
+    # return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
@@ -145,9 +145,14 @@ def approximate_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, full_outp
 
     rho_x = dsty_est(x, samples=x, r=r_opt, norm_p=norm_p) - 1 / n_points
     if not full_output:
-        return (r_opt / corr_sum(x, r_opt, norm_p=norm_p)) * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
+        # return (r_opt / corr_sum(x, r_opt, norm_p=norm_p)) * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
+        return r_opt * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
     else:
         raise NotImplementedError
+
+
+def lscv(x: np.ndarray, theiler=0):
+    pass
 
 # def corr_dim(x):
 #
