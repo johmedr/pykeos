@@ -56,7 +56,7 @@ class AbstractBaseSys(ABC):
     def integrate(self, *args, **kwargs):
         pass
 
-    def make_plot(self, show=True, fig=None, **trace_kwargs):
+    def make_plot(self, show=True, fig=None, fig_argdict=None, **trace_kwargs):
         if self.dim > 3:
             raise NotImplementedError()
 
@@ -65,12 +65,13 @@ class AbstractBaseSys(ABC):
 
         if self.dim == 1:
             fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                     y=self.states[:, 0], mode='lines', **trace_kwargs))
+                                     y=self.states[:, 0], mode='lines', **trace_kwargs), **fig_argdict)
         elif self.dim == 2:
-            fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs))
+            fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs),
+                          **fig_argdict)
         elif self.dim == 3:
             fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode='lines',
-                                       **trace_kwargs))
+                                       **trace_kwargs), **fig_argdict)
 
         if show:
             fig.show()
