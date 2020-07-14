@@ -1,6 +1,7 @@
 import numpy as np
 from .._tools import n_ball_volume, n_sphere_area
 from nolds.measures import poly_fit
+from tqdm import tqdm
 
 import plotly.graph_objs as go
 
@@ -75,7 +76,7 @@ def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
-                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False):
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, verbose=True):
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -83,17 +84,23 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     :param rvals: the threshold values to use
     :return: the correlation dimension
     """
+    if log_base == 10:
+        log = np.log10
+    elif log_base == np.exp(1):
+        log = np.log
+    else:
+        log = lambda x: np.log(x)/np.log(log_base)
+
     if rvals is None:
         if rmin is not None and rmax is not None:
-            rvals = np.linspace(rmin, rmax, nr)
-
+            rvals = np.logspace(rmin, rmax, nr, base=log_base)
         else:
-            rvals = np.logspace(- np.log(x.shape[0]) + np.log(x.std()) - 2, 5 + np.log(x.std()), nr, base=np.exp(1))
+            rvals = np.logspace(- log(x.shape[0]) + log(x.std()) - 2, 5 + log(x.std()), nr, base=log_base)
     # print(rvals)
-    csums = np.asarray([corr_sum(x, r) for r in rvals])
+    csums = np.asarray([corr_sum(x, r) for r in tqdm(rvals, desc="Computing correlation sums")])
     # print(csums)
-    orig_log_csums = np.log(csums[csums > 0])
-    orig_log_rvals = np.log(rvals[csums > 0])
+    orig_log_csums = log(csums[csums > 0])
+    orig_log_rvals = log(rvals[csums > 0])
 
     log_csums = np.asarray(orig_log_csums)
     log_rvals = np.asarray(orig_log_rvals)
