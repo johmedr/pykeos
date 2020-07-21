@@ -56,7 +56,7 @@ class AbstractBaseSys(ABC):
     def integrate(self, *args, **kwargs):
         pass
 
-    def make_plot(self, show=True, fig=None, fig_argdict=None, **trace_kwargs):
+    def make_plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
         if self.dim > 3:
             raise NotImplementedError()
 
