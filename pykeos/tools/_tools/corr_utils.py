@@ -60,7 +60,7 @@ def dsty_est(x, samples, r, norm_p=1):
     return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64) / (n_ball_volume(dim, norm_p) * r**dim * samples.shape[0])
 
 
-def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
+def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
     n = x.shape[0]
     d = 1
     if len(x.shape) == 2:
@@ -70,9 +70,12 @@ def rule_of_thumb(x: np.ndarray, norm_p=2) -> float:
 
 
     # version 1
-    # return std * ((18 * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+    if version == 'normal':
+        return std * ((9. * n_ball_volume(d, norm_p) * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n * d)) ** (1/(d+4))
+    elif version == 'scott':
+        return std * 3.5 * n ** (-1 / (d + 2))
     # version 2
-    return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
+    # return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
