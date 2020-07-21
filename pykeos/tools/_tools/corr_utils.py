@@ -143,6 +143,38 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     else:
         return poly[0]
 
+def pointwise_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
+
+    if len(x.shape) == 1:
+        x = x[:, np.newaxis]
+
+    dim = x.shape[1]
+    n_points = x.shape[0]
+
+    if r_opt is None:
+        r_opt = rule_of_thumb(x, norm_p=norm_p)
+
+    if base == 10:
+        log = np.log10
+    elif base == np.e:
+        log = np.log
+    else:
+        raise AttributeError()
+
+    r1 = r_opt
+    r2 = r_opt * base**(-r_opt_ratio)
+    # print(log(r1))
+    # print(log(r2))
+    c1 = corr_sum(x,  r1, norm_p=norm_p, allow_equals=False)
+    c2 = corr_sum(x, r2, norm_p=norm_p, allow_equals=False)
+    alpha = (log(c1) - log(c2)) / r_opt_ratio
+    if full_output:
+        r0 = log(r1)
+        beta = log(c1) - alpha * r0
+
+        return alpha, beta, r0
+    else:
+        return alpha
 
 def approximate_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, full_output=False, plot=False, fig=None, show=True):
 
