@@ -1,5 +1,5 @@
 import numpy as np
-from .._tools import n_ball_volume, n_sphere_area
+from .._tools import n_ball_volume, n_sphere_area, delay_coordinates
 from nolds.measures import poly_fit
 from tqdm import tqdm
 
@@ -74,7 +74,7 @@ def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
 
     # version 1
     if version == 'normal':
-        return std * ((9. * n_ball_volume(d, norm_p) * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n * d)) ** (1/(d+4))
+        return std * ((9. * n_ball_volume(d, norm_p) * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
     elif version == 'scott':
         return std * 3.5 * n ** (-1 / (d + 2))
     # version 2
@@ -82,7 +82,7 @@ def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
-                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, verbose=True):
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, remove_tail=True, verbose=True):
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -111,6 +111,13 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     log_csums = np.asarray(orig_log_csums)
     log_rvals = np.asarray(orig_log_rvals)
 
+    print(rmin, rmax)
+
+    if remove_tail:
+        filter = log_csums > -log(x.shape[0])
+        log_csums = log_csums[filter]
+        log_rvals = log_rvals[filter]
+
     if hack_filter_rvals is not None:
         log_rvals = log_rvals[hack_filter_rvals]
         log_csums = log_csums[hack_filter_rvals]
@@ -121,6 +128,7 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
             delta = log_csums[i+1] - log_csums[i]
             if delta > 0:
                 filter[i] = True
+
 
         log_rvals = log_rvals[filter]
         log_csums = log_csums[filter]
@@ -143,7 +151,8 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     else:
         return poly[0]
 
-def pointwise_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
+
+def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
 
     if len(x.shape) == 1:
         x = x[:, np.newaxis]
@@ -176,28 +185,38 @@ def pointwise_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio
     else:
         return alpha
 
-def approximate_corr_dim(x: np.ndarray, r_opt: float = None, norm_p=1, full_output=False, plot=False, fig=None, show=True):
 
-    if len(x.shape) == 1:
-        x = x[:, np.newaxis]
+def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange: tuple=None):
+    try:
+        from pyunicorn.timeseries import RecurrencePlot
+    except ImportError:
+        raise ImportError('The pyunicorn module is required to approximate K2. ')
 
-    dim = x.shape[1]
-    n_points = x.shape[0]
+    if r == 'auto':
+        r = rule_of_thumb(x, norm_p=float('inf'))
+        
+    N_l = RecurrencePlot(x, threshold=r, silence_level=3).diagline_dist()[:max_l]
+    D_l = np.zeros_like(N_l, dtype=float)
 
-    if r_opt is None:
-        r_opt = rule_of_thumb(x, norm_p=norm_p)
-        # print("selecting r_opt=%.3f"%r_opt )
+    if mrange is None:
+        mrange = (2 + 1 , max_l - 1)
 
-    rho_x = dsty_est(x, samples=x, r=r_opt, norm_p=norm_p) - 1 / n_points
-    if not full_output:
-        # return (r_opt / corr_sum(x, r_opt, norm_p=norm_p)) * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
-        return r_opt * (np.sum(rho_x) * n_sphere_area(dim - 1, norm=norm_p) * r_opt**(dim - 1) / n_points)
+    for i in range(mrange[0], mrange[1]):
+        if N_l[i] > 0 and N_l[i + 1] > 0:
+            D_l[i] = np.log(N_l[i]) - np.log(N_l[i + 1])
+    D_l = D_l[D_l != 0]
+
+    if full_output:
+        return np.mean(D_l), np.std(D_l) / D_l.size
     else:
-        raise NotImplementedError
+        return np.mean(D_l)
 
-
-def lscv(x: np.ndarray, theiler=0):
-    pass
-
-# def corr_dim(x):
+# def ks_estimation(x: np.ndarray, dims: list, rvals=None, rmin=None, rmax=None, omit_plateau=True, lag:int=1):
+#     if isinstance(dims, int):
+#         dims = [dims]
+#     for dim in dims:
+#         ts0 = delay_coordinates(x, dim, lag)
+#         ts1 = delay_coordinates(x, dim + 1, lag)
 #
+#         corr_sum(ts0, r, norm_p=float('inf'), allow_equals=False)
+#         corr_sum(ts1, r, norm_p=float('inf'), allow_equals=False)

@@ -28,3 +28,5 @@ def make_uniform_kernel(dim, norm_p):
     return lambda u: 1./n_ball_volume(dim, norm_p) if u <= 1 else 0.
 
 
+def delay_coordinates(ts: np.ndarray, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
+    return np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
