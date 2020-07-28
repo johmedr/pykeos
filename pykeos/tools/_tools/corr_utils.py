@@ -69,7 +69,7 @@ def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
 
-    std = np.sqrt(x.var(axis=0).mean())
+    std = np.sqrt(x.var(axis=0, ddof=1).mean())
 
 
     # version 1
