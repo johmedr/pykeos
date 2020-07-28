@@ -194,6 +194,8 @@ def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange:
 
     if r == 'auto':
         r = rule_of_thumb(x, norm_p=float('inf'))
+    if max_l is None:
+        max_l = -1
         
     N_l = RecurrencePlot(x, threshold=r, silence_level=3).diagline_dist()[:max_l]
     D_l = np.zeros_like(N_l, dtype=float)
@@ -202,12 +204,13 @@ def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange:
         mrange = (2 + 1 , max_l - 1)
 
     for i in range(mrange[0], mrange[1]):
-        if N_l[i] > 0 and N_l[i + 1] > 0:
+        if np.log(N_l[i]) > - np.inf and np.log(N_l[i + 1]) > - np.inf:
             D_l[i] = np.log(N_l[i]) - np.log(N_l[i + 1])
+    D_l = np.nan_to_num(D_l)
     D_l = D_l[D_l != 0]
 
     if full_output:
-        return np.mean(D_l), np.std(D_l) / D_l.size
+        return np.mean(D_l), np.std(D_l, ddof=1) / D_l.size
     else:
         return np.mean(D_l)
 
