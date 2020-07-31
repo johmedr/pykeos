@@ -111,8 +111,6 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     log_csums = np.asarray(orig_log_csums)
     log_rvals = np.asarray(orig_log_rvals)
 
-    print(rmin, rmax)
-
     if remove_tail:
         filter = log_csums > -log(x.shape[0])
         log_csums = log_csums[filter]
