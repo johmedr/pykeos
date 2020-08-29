@@ -3,6 +3,8 @@ import plotly.graph_objs as go
 import numpy as np
 from scipy.integrate import odeint
 
+from pykeos.tools import delay_coordinates
+
 
 class AbstractBaseSys(ABC):
     def __init__(self, dim, map_func, init_func=None, n_points=None):
@@ -78,8 +80,8 @@ class AbstractBaseSys(ABC):
 
         return fig
 
-    def delay_coordinates(self, dim, lag=1, axis=0):
-        return np.vstack([self.states[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+    def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
 class DiscreteSys(AbstractBaseSys):

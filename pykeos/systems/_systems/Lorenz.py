@@ -6,7 +6,7 @@ from pykeos.tools import nd_rand_init
 
 
 class Lorenz(ContinuousSys):
-    def __init__(self, sigma=10., beta=8. / 3, rho=28., n_points=1000, t_min=0, t_max=20):
+    def __init__(self, sigma=10., beta=8. / 3, rho=28., n_points=10000, t_min=0, t_max=100):
         def ode(X, t):
             _x, _y, _z = X
             return np.asarray([
