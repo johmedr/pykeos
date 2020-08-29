@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pykeos',
-    version='0.0.2',
+    version='0.0.2a0',
     author='Johan Medrano',
     python_requires='>=3.4',
     author_email='',
@@ -17,8 +17,7 @@ setup(
         'nolds',
         "plotly",
         'plotly_express',
-        "pyunicorn",
-        "plotly-orca"
+        "pyunicorn"
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',
