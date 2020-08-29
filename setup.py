@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pykeos',
-    version='0.0.1',
+    version='0.0.2',
     author='Johan Medrano',
     python_requires='>=3.4',
     author_email='',
@@ -21,7 +21,7 @@ setup(
         "plotly-orca"
     ),
     classifiers=[
-        'Development Status :: 1 - Alpha',
+        'Development Status :: 3 - Alpha',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
