@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pykeos',
-    version='0.0.2a0',
+    version='0.0.2dev0',
     author='Johan Medrano',
     python_requires='>=3.4',
     author_email='',
