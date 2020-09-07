@@ -1,17 +1,21 @@
 from setuptools import find_packages, setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='pykeos',
-    version='0.0.2dev0',
+    version='0.0.2dev1',
     author='Johan Medrano',
     python_requires='>=3.4',
     author_email='',
     description='',
+    long_description=long_description,
     platforms='Linux',
-    packages=find_packages(where='./pykeos'),
-    package_dir={
-        '': 'pykeos'
-    },
+    packages=find_packages(),
+    #package_dir={
+    #    '': 'pykeos'
+    #},
     include_package_data=True,
     install_requires=(
         'nolds',

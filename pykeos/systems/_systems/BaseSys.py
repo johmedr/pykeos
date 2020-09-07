@@ -27,6 +27,9 @@ class AbstractBaseSys(ABC):
             raise ValueError()
         self.time_map = map_func
 
+    def __str__(self): 
+        return self.__class__.__name__
+
     @property
     def states(self):
         if self._states is None:
