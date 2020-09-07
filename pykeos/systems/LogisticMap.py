@@ -1,4 +1,4 @@
-from .._systems import DiscreteSys
+from pykeos.systems import DiscreteSys
 from pykeos.tools import nd_rand_init
 
 import numpy as np

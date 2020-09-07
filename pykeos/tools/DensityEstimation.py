@@ -1,6 +1,6 @@
 import numpy as np
 
-from .._tools import make_uniform_kernel
+from pykeos.tools import make_uniform_kernel
 
 
 class DensityEstimation:

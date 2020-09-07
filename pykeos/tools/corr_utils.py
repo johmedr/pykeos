@@ -1,5 +1,5 @@
 import numpy as np
-from .._tools import n_ball_volume, n_sphere_area, delay_coordinates
+from pykeos.tools import n_ball_volume, n_sphere_area, delay_coordinates
 from nolds.measures import poly_fit
 from tqdm import tqdm
 
