@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.0" />
-<title>pykeos.systems.HindmarshRose API documentation</title>
+<title>pykeos.tools.ebdg_utils API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,34 +19,90 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pykeos.systems.HindmarshRose</code></h1>
+<h1 class="title">Module <code>pykeos.tools.ebdg_utils</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from ..systems import ContinuousSys
-from ..tools import nd_rand_init
+<pre><code class="python">from ..tools import lagged_mi
+from ..systems import AbstractBaseSys, SysWrapper
 
 import numpy as np
+import pandas as pd
+import plotly.graph_objs as go
+
+from typing import Union
 
 
-class HindmarshRose(ContinuousSys):
-    def __init__(self, I=3.25, a=1, b=3, c=1, d=5, r=1e-3, s=4, x_r=-(1 + np.sqrt(5))/2., n_points=5000, t_min=0, t_max=30):
+def delay_coordinates(
+        ts: np.ndarray,
+        dim: int,
+        lag: Union[int, str] = &#34;auto&#34;,
+        axis: int = 0,
+        return_array: bool = False,
+        *args, **kwargs
+    ) -&gt; Union[np.ndarray, SysWrapper]:
 
-        def ode(X, t):
-            x, y, z = X
-            return np.asarray([
-                y - a * x**3 + b * x**2 - z + I,
-                c - d * x**2 - y,
-                r * (s * (x - x_r) - z)
-            ])
+    if lag == &#34;auto&#34;:
+        lag = select_embedding_lag(ts, *args, **kwargs)
 
-        def rand_init():
-            return nd_rand_init((-1, 2), (-1, 1), (-1, 1))
+    if len(ts.shape) == 1:
+        data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
+    else:
+        data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
 
-        super().__init__(dim=3, map_func=ode, init_func=rand_init, n_points=n_points, t_min=t_min, t_max=t_max)</code></pre>
+    if return_array:
+        return data
+    else:
+        return SysWrapper(data)
+
+
+def select_embedding_lag(
+        data: Union[np.ndarray, AbstractBaseSys],
+        lag_range: Union[int, tuple] = (2, 500),
+        method: str = &#34;acf&#34;,
+        criterion: float = 1/np.e,
+        interactive: bool = False,
+        plot: bool = False
+    ) -&gt; int:
+
+    assert(method in [&#39;acf&#39;, &#39;mi&#39;])
+
+    if interactive:
+        raise NotImplementedError()
+
+    ts = None
+    if isinstance(data, np.ndarray):
+        ts = pd.Series(data)
+    elif isinstance(data, AbstractBaseSys):
+        from ..tools.conv_utils import to_pandas_series
+        ts = to_pandas_series(data)
+
+    dcurve = None
+    ref = None
+    lag = -1
+
+    if method == &#34;acf&#34;:
+        ref = ts.autocorr(0)
+        dcurve = [ts.autocorr(lag) for lag in range(*lag_range)]
+    elif method == &#34;mi&#34;:
+        ref = lagged_mi(ts, 0)
+        dcurve = [lagged_mi(ts, lag) for lag in range(*lag_range)]
+
+    for i in range(len(dcurve) - 1):
+        if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
+            lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+            break
+
+    if plot:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=dcurve, mode=&#34;lines&#34;))
+        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;)
+        fig.show()
+
+    return lag</code></pre>
 </details>
 </section>
 <section>
@@ -54,47 +110,98 @@ class HindmarshRose(ContinuousSys):
 <section>
 </section>
 <section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pykeos.systems.HindmarshRose.HindmarshRose"><code class="flex name class">
-<span>class <span class="ident">HindmarshRose</span></span>
-<span>(</span><span>I=3.25, a=1, b=3, c=1, d=5, r=0.001, s=4, x_r=-1.618033988749895, n_points=5000, t_min=0, t_max=30)</span>
+<dt id="pykeos.tools.ebdg_utils.delay_coordinates"><code class="name flex">
+<span>def <span class="ident">delay_coordinates</span></span>(<span>ts: numpy.ndarray, dim: int, lag: Union[int, str] = 'auto', axis: int = 0, return_array: bool = False, *args, **kwargs) ‑> Union[numpy.ndarray, <a title="pykeos.systems.BaseSys.SysWrapper" href="../systems/BaseSys.html#pykeos.systems.BaseSys.SysWrapper">SysWrapper</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p>
-<p>:param dim:
-:param x0: (npoints, dim)</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class HindmarshRose(ContinuousSys):
-    def __init__(self, I=3.25, a=1, b=3, c=1, d=5, r=1e-3, s=4, x_r=-(1 + np.sqrt(5))/2., n_points=5000, t_min=0, t_max=30):
+<pre><code class="python">def delay_coordinates(
+        ts: np.ndarray,
+        dim: int,
+        lag: Union[int, str] = &#34;auto&#34;,
+        axis: int = 0,
+        return_array: bool = False,
+        *args, **kwargs
+    ) -&gt; Union[np.ndarray, SysWrapper]:
 
-        def ode(X, t):
-            x, y, z = X
-            return np.asarray([
-                y - a * x**3 + b * x**2 - z + I,
-                c - d * x**2 - y,
-                r * (s * (x - x_r) - z)
-            ])
+    if lag == &#34;auto&#34;:
+        lag = select_embedding_lag(ts, *args, **kwargs)
 
-        def rand_init():
-            return nd_rand_init((-1, 2), (-1, 1), (-1, 1))
+    if len(ts.shape) == 1:
+        data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
+    else:
+        data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
 
-        super().__init__(dim=3, map_func=ode, init_func=rand_init, n_points=n_points, t_min=t_min, t_max=t_max)</code></pre>
+    if return_array:
+        return data
+    else:
+        return SysWrapper(data)</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="pykeos.systems.BaseSys.ContinuousSys" href="BaseSys.html#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></li>
-<li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
-<li>abc.ABC</li>
-</ul>
+</dd>
+<dt id="pykeos.tools.ebdg_utils.select_embedding_lag"><code class="name flex">
+<span>def <span class="ident">select_embedding_lag</span></span>(<span>data: Union[numpy.ndarray, <a title="pykeos.systems.BaseSys.AbstractBaseSys" href="../systems/BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a>], lag_range: Union[int, tuple] = (2, 500), method: str = 'acf', criterion: float = 0.36787944117144233, interactive: bool = False, plot: bool = False) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_embedding_lag(
+        data: Union[np.ndarray, AbstractBaseSys],
+        lag_range: Union[int, tuple] = (2, 500),
+        method: str = &#34;acf&#34;,
+        criterion: float = 1/np.e,
+        interactive: bool = False,
+        plot: bool = False
+    ) -&gt; int:
+
+    assert(method in [&#39;acf&#39;, &#39;mi&#39;])
+
+    if interactive:
+        raise NotImplementedError()
+
+    ts = None
+    if isinstance(data, np.ndarray):
+        ts = pd.Series(data)
+    elif isinstance(data, AbstractBaseSys):
+        from ..tools.conv_utils import to_pandas_series
+        ts = to_pandas_series(data)
+
+    dcurve = None
+    ref = None
+    lag = -1
+
+    if method == &#34;acf&#34;:
+        ref = ts.autocorr(0)
+        dcurve = [ts.autocorr(lag) for lag in range(*lag_range)]
+    elif method == &#34;mi&#34;:
+        ref = lagged_mi(ts, 0)
+        dcurve = [lagged_mi(ts, lag) for lag in range(*lag_range)]
+
+    for i in range(len(dcurve) - 1):
+        if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
+            lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+            break
+
+    if plot:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=dcurve, mode=&#34;lines&#34;))
+        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;)
+        fig.show()
+
+    return lag</code></pre>
+</details>
 </dd>
 </dl>
+</section>
+<section>
 </section>
 </article>
 <nav id="sidebar">
@@ -105,14 +212,13 @@ inheritance.</p>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="pykeos.systems" href="index.html">pykeos.systems</a></code></li>
+<li><code><a title="pykeos.tools" href="index.html">pykeos.tools</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="pykeos.systems.HindmarshRose.HindmarshRose" href="#pykeos.systems.HindmarshRose.HindmarshRose">HindmarshRose</a></code></h4>
-</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pykeos.tools.ebdg_utils.delay_coordinates" href="#pykeos.tools.ebdg_utils.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.tools.ebdg_utils.select_embedding_lag" href="#pykeos.tools.ebdg_utils.select_embedding_lag">select_embedding_lag</a></code></li>
 </ul>
 </li>
 </ul>

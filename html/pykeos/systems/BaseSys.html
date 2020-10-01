@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.0" />
 <title>pykeos.systems.BaseSys API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -30,8 +30,7 @@
 import plotly.graph_objs as go
 import numpy as np
 from scipy.integrate import odeint
-
-from pykeos.tools import delay_coordinates
+import warnings
 
 
 class AbstractBaseSys(ABC):
@@ -89,7 +88,7 @@ class AbstractBaseSys(ABC):
     def integrate(self, *args, **kwargs):
         pass
 
-    def make_plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
+    def plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
         if self.dim &gt; 3:
             raise NotImplementedError()
 
@@ -112,9 +111,39 @@ class AbstractBaseSys(ABC):
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+        from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
+class SysWrapper(AbstractBaseSys): 
+    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+        if dim is None: 
+            dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
+        if n_points is None: 
+            n_points = ts.shape[0]
+        if time_vec is None: 
+            if t_min is None: 
+                t_min = 0
+            if t_max is None: 
+                t_max = n_points
+            time_vec = np.linspace(t_min, t_max, n_points)
+
+        super(SysWrapper, self).__init__(
+            dim=dim,
+            map_func=lambda x: warnings.warn(&#34;The map function of a &lt;SysWrapper&gt; is not supposed to be called.&#34;),
+            n_points=n_points
+        )
+
+        self.dim = dim
+        self.n_points = n_points
+        self.time_vec = time_vec
+        self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
+        self._initial_state = self._states[0, :]
+
+    def integrate(self, *args, **kwargs):
+        raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)
+
+    
 class DiscreteSys(AbstractBaseSys):
     def integrate(self, n_points=None, x0=None, update_states=True):
         if x0 is not None:
@@ -248,7 +277,7 @@ inheritance.</p>
     def integrate(self, *args, **kwargs):
         pass
 
-    def make_plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
+    def plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
         if self.dim &gt; 3:
             raise NotImplementedError()
 
@@ -271,6 +300,7 @@ inheritance.</p>
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+        from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -281,6 +311,7 @@ inheritance.</p>
 <ul class="hlist">
 <li><a title="pykeos.systems.BaseSys.ContinuousSys" href="#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></li>
 <li><a title="pykeos.systems.BaseSys.DiscreteSys" href="#pykeos.systems.BaseSys.DiscreteSys">DiscreteSys</a></li>
+<li><a title="pykeos.systems.BaseSys.SysWrapper" href="#pykeos.systems.BaseSys.SysWrapper">SysWrapper</a></li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
@@ -331,6 +362,7 @@ def states(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+    from ..tools import delay_coordinates
     return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
 </details>
 </dd>
@@ -348,8 +380,8 @@ def integrate(self, *args, **kwargs):
     pass</code></pre>
 </details>
 </dd>
-<dt id="pykeos.systems.BaseSys.AbstractBaseSys.make_plot"><code class="name flex">
-<span>def <span class="ident">make_plot</span></span>(<span>self, show=True, fig=None, fig_argdict={}, **trace_kwargs)</span>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>self, show=True, fig=None, fig_argdict={}, **trace_kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -357,7 +389,7 @@ def integrate(self, *args, **kwargs):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def make_plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
+<pre><code class="python">def plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
     if self.dim &gt; 3:
         raise NotImplementedError()
 
@@ -557,6 +589,69 @@ inheritance.</p>
 </dd>
 </dl>
 </dd>
+<dt id="pykeos.systems.BaseSys.SysWrapper"><code class="flex name class">
+<span>class <span class="ident">SysWrapper</span></span>
+<span>(</span><span>ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Helper class that provides a standard way to create an ABC using
+inheritance.</p>
+<p>:param dim:
+:param x0: (npoints, dim)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SysWrapper(AbstractBaseSys): 
+    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+        if dim is None: 
+            dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
+        if n_points is None: 
+            n_points = ts.shape[0]
+        if time_vec is None: 
+            if t_min is None: 
+                t_min = 0
+            if t_max is None: 
+                t_max = n_points
+            time_vec = np.linspace(t_min, t_max, n_points)
+
+        super(SysWrapper, self).__init__(
+            dim=dim,
+            map_func=lambda x: warnings.warn(&#34;The map function of a &lt;SysWrapper&gt; is not supposed to be called.&#34;),
+            n_points=n_points
+        )
+
+        self.dim = dim
+        self.n_points = n_points
+        self.time_vec = time_vec
+        self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
+        self._initial_state = self._states[0, :]
+
+    def integrate(self, *args, **kwargs):
+        raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pykeos.systems.BaseSys.SysWrapper.integrate"><code class="name flex">
+<span>def <span class="ident">integrate</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def integrate(self, *args, **kwargs):
+    raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -579,7 +674,7 @@ inheritance.</p>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
-<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.make_plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.make_plot">make_plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
 </ul>
 </li>
@@ -595,13 +690,19 @@ inheritance.</p>
 <li><code><a title="pykeos.systems.BaseSys.DiscreteSys.integrate" href="#pykeos.systems.BaseSys.DiscreteSys.integrate">integrate</a></code></li>
 </ul>
 </li>
+<li>
+<h4><code><a title="pykeos.systems.BaseSys.SysWrapper" href="#pykeos.systems.BaseSys.SysWrapper">SysWrapper</a></code></h4>
+<ul class="">
+<li><code><a title="pykeos.systems.BaseSys.SysWrapper.integrate" href="#pykeos.systems.BaseSys.SysWrapper.integrate">integrate</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.0</a>.</p>
 </footer>
 </body>
 </html>
