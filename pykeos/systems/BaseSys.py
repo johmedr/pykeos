@@ -4,8 +4,6 @@ import numpy as np
 from scipy.integrate import odeint
 import warnings
 
-from ..tools import delay_coordinates
-
 
 class AbstractBaseSys(ABC):
     def __init__(self, dim, map_func, init_func=None, n_points=None):
@@ -85,6 +83,7 @@ class AbstractBaseSys(ABC):
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
+        from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 

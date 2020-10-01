@@ -1,5 +1,5 @@
-from ..tools import to_pandas_series, lagged_mi
-from ..systems import AbstractBaseSys
+from ..tools import lagged_mi
+from ..systems import AbstractBaseSys, SysWrapper
 
 import numpy as np
 import pandas as pd
@@ -8,9 +8,37 @@ import plotly.graph_objs as go
 from typing import Union
 
 
+def delay_coordinates(
+        ts: np.ndarray,
+        dim: int,
+        lag: Union[int, str] = "auto",
+        axis: int = 0,
+        return_array: bool = False,
+        *args, **kwargs
+    ) -> Union[np.ndarray, SysWrapper]:
+
+    if lag == "auto":
+        lag = select_embedding_lag(ts, *args, **kwargs)
+
+    if len(ts.shape) == 1:
+        data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
+    else:
+        data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+
+    if return_array:
+        return data
+    else:
+        return SysWrapper(data)
+
+
 def select_embedding_lag(
-        data: Union[np.ndarray, AbstractBaseSys], lag_range: Union[int, tuple] = (2, 500),
-        method: str = "acf", criterion: float = 1/np.e,interactive: bool = False, plot: bool = False) -> int:
+        data: Union[np.ndarray, AbstractBaseSys],
+        lag_range: Union[int, tuple] = (2, 500),
+        method: str = "acf",
+        criterion: float = 1/np.e,
+        interactive: bool = False,
+        plot: bool = False
+    ) -> int:
 
     assert(method in ['acf', 'mi'])
 
@@ -21,6 +49,7 @@ def select_embedding_lag(
     if isinstance(data, np.ndarray):
         ts = pd.Series(data)
     elif isinstance(data, AbstractBaseSys):
+        from ..tools.conv_utils import to_pandas_series
         ts = to_pandas_series(data)
 
     dcurve = None

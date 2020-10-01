@@ -2,7 +2,7 @@ import numpy as np
 from scipy.special import gamma
 
 from sklearn.metrics import mutual_info_score
-
+from typing import Union
 
 def n_ball_volume(dim, norm):
     if norm == 1:
@@ -28,13 +28,6 @@ def nd_rand_init(*tuples_lo_hi):
 
 def make_uniform_kernel(dim, norm_p):
     return lambda u: 1./n_ball_volume(dim, norm_p) if u <= 1 else 0.
-
-
-def delay_coordinates(ts: np.ndarray, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
-    if len(ts.shape) == 1:
-        return np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
-    else:
-        return np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
 
 
 def mutual_information(x, y, n_bins=None) -> float:
