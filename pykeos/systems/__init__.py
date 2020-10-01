@@ -1,4 +1,4 @@
-from .BaseSys import AbstractBaseSys, ContinuousSys, DiscreteSys
+from .BaseSys import AbstractBaseSys, ContinuousSys, DiscreteSys, SysWrapper
 from .Lorenz import Lorenz
 from .HindmarshRose import HindmarshRose
 from .Rossler import Rossler

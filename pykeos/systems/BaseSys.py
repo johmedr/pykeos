@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import plotly.graph_objs as go
 import numpy as np
 from scipy.integrate import odeint
+import warnings
 
 from pykeos.tools import delay_coordinates
 
@@ -61,7 +62,7 @@ class AbstractBaseSys(ABC):
     def integrate(self, *args, **kwargs):
         pass
 
-    def make_plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
+    def plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
         if self.dim > 3:
             raise NotImplementedError()
 
@@ -87,6 +88,35 @@ class AbstractBaseSys(ABC):
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
+class SysWrapper(AbstractBaseSys): 
+    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+        if dim is None: 
+            dim = ts.shape[1] if len(ts.shape) > 1 else 1
+        if n_points is None: 
+            n_points = ts.shape[0]
+        if time_vec is None: 
+            if t_min is None: 
+                t_min = 0
+            if t_max is None: 
+                t_max = n_points
+            time_vec = np.linspace(t_min, t_max, n_points)
+
+        super(SysWrapper, self).__init__(
+            dim=dim,
+            map_func=lambda x: warnings.warn("The map function of a <SysWrapper> is not supposed to be called."),
+            n_points=n_points
+        )
+
+        self.dim = dim
+        self.n_points = n_points
+        self.time_vec = time_vec
+        self._states = ts if len(ts.shape) > 1 else ts[:, None]
+        self._initial_state = self._states[0, :]
+
+    def integrate(self, *args, **kwargs):
+        raise RuntimeError("Instance of <SysWrapper> is not supposed to be integrated.")
+
+    
 class DiscreteSys(AbstractBaseSys):
     def integrate(self, n_points=None, x0=None, update_states=True):
         if x0 is not None:
