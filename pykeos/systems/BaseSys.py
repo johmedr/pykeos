@@ -4,7 +4,7 @@ import numpy as np
 from scipy.integrate import odeint
 import warnings
 
-from pykeos.tools import delay_coordinates
+from ..tools import delay_coordinates
 
 
 class AbstractBaseSys(ABC):

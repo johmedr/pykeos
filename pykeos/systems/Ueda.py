@@ -2,8 +2,8 @@
 import numpy as np
 
 
-from pykeos.systems import ContinuousSys
-from pykeos.tools import nd_rand_init
+from ..systems import ContinuousSys
+from ..tools import nd_rand_init
 
 
 class Ueda(ContinuousSys):
