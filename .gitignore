@@ -4,3 +4,4 @@
 **/examples/datasets
 dist
 build
+**/*.npy
