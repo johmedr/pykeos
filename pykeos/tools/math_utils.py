@@ -29,4 +29,7 @@ def make_uniform_kernel(dim, norm_p):
 
 
 def delay_coordinates(ts: np.ndarray, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
-    return np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+    if len(ts.shape) == 1:
+        return np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
+    else:
+        return np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
