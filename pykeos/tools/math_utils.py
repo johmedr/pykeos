@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.special import gamma
 
+from sklearn.metrics import mutual_info_score
+
 
 def n_ball_volume(dim, norm):
     if norm == 1:
@@ -33,3 +35,21 @@ def delay_coordinates(ts: np.ndarray, dim: int, lag: int = 1, axis: int = 0) -> 
         return np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
     else:
         return np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+
+
+def mutual_information(x, y, n_bins=None) -> float:
+    assert(x.size > 0 and y.size > 0)
+    assert(n_bins is None or isinstance(n_bins, int))
+    if n_bins is None:
+        n_bins = int(np.floor(np.sqrt(x.shape[0] / 5)))
+
+    c_xy = np.histogram2d(x, y, n_bins)[0]
+    return mutual_info_score(None, None, contingency=c_xy)
+
+
+def lagged_mi(x, lag=1, n_bins=None) -> float:
+    assert(lag >= 0)
+    if lag > 0:
+        return mutual_information(x[:-lag], x[lag:], n_bins=n_bins)
+    else:
+        return mutual_information(x, x, n_bins=n_bins)

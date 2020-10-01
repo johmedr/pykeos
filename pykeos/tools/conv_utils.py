@@ -1,6 +1,7 @@
 from ..systems import AbstractBaseSys, SysWrapper
 import pandas as pd
 import numpy as np
+import mne
 
 
 def to_data_frame(sys: AbstractBaseSys, columns = None) -> pd.DataFrame:
@@ -26,4 +27,8 @@ def to_array(sys: AbstractBaseSys) -> np.ndarray:
 
 def from_array(a: np.ndarray, *args, **kwargs):
     return SysWrapper(a, *args, **kwargs)
+
+
+def from_mne_raw(raw: mne.io.BaseRaw) -> SysWrapper:
+    return SysWrapper(raw.get_data().T, time_vec=np.asarray(raw.times))
 
