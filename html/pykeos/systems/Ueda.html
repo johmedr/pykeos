@@ -40,7 +40,7 @@ class Ueda(ContinuousSys):
             _x, _y, _z = X
             return np.asarray([
                 _y,
-                _x **3 - k * _y + A * np.sin(_z),
+                - _x ** 3 - k * _y + A * np.sin(_z),
                 1
             ])
 
@@ -64,10 +64,39 @@ class Ueda(ContinuousSys):
 <span>(</span><span>k=0.05, A=7.5, n_points=10000, t_min=0, t_max=100)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p>
-<p>:param dim:
-:param x0: (npoints, dim)</p></div>
+<div class="desc"><p>Abstract class representing common attributes of pykeos systems.</p>
+<p>This class is not supposed to be instancied but is a common template for
+pykeos systems. Defines common functions that are usually applicable to
+either formally-defined discrete or continuous (sampled) systems, as well
+as to unformally-defined (wrapped) systems.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of points.</dd>
+<dt><strong><code>states</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+(if defined) from an initial_state (returned by rand_init()) for a duration of n_points.</dd>
+<dt><strong><code>time_vec</code></strong> :&ensp;<code>Optional[np.ndarray]</code></dt>
+<dd>The time vector associated with the time series. Is usually None for discrete systems.</dd>
+<dt><strong><code>time_map</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
+<dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
+<dd>The initialization function that must be called to get a random initial point to the system.</dd>
+</dl>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -78,7 +107,7 @@ inheritance.</p>
             _x, _y, _z = X
             return np.asarray([
                 _y,
-                _x **3 - k * _y + A * np.sin(_z),
+                - _x ** 3 - k * _y + A * np.sin(_z),
                 1
             ])
 
@@ -92,6 +121,18 @@ inheritance.</p>
 <li><a title="pykeos.systems.BaseSys.ContinuousSys" href="BaseSys.html#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></li>
 <li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
 <li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pykeos.systems.BaseSys.ContinuousSys" href="BaseSys.html#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.delay_coordinates" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.initial_state" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.integrate" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.plot" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.states" href="BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
+</ul>
+</li>
 </ul>
 </dd>
 </dl>

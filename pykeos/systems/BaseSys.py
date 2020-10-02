@@ -1,15 +1,53 @@
 from abc import ABC, abstractmethod
+from typing import Union, Dict, Callable, Optional
+from numbers import Number
+from scipy.integrate import odeint
+
 import plotly.graph_objs as go
 import numpy as np
-from scipy.integrate import odeint
 import warnings
 
 
 class AbstractBaseSys(ABC):
-    def __init__(self, dim, map_func, init_func=None, n_points=None):
+    """Abstract class representing common attributes of pykeos systems.
+
+    This class is not supposed to be instancied but is a common template for
+    pykeos systems. Defines common functions that are usually applicable to
+    either formally-defined discrete or continuous (sampled) systems, as well
+    as to unformally-defined (wrapped) systems.
+
+    Attributes
+    ----------
+    dim : int
+        The dimension of the system.
+    n_points : int
+        The number of points.
+    states : np.ndarray
+        An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+        (if defined) from an initial_state (returned by rand_init()) for a duration of n_points.
+    time_vec : Optional[np.ndarray]
+        The time vector associated with the time series. Is usually None for discrete systems.
+    time_map : Callable
+        A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
+    rand_init : Optional[Callable]
+        The initialization function that must be called to get a random initial point to the system.
+
+
+    """
+    def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
+                 n_points: Optional[int] = None):
         """
-        :param dim:
-        :param x0: (npoints, dim)
+        Parameters
+        ----------
+        dim : int
+            The dimension of the system
+        map_func : Callable
+            A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+        init_func : Callable, optional
+            The initialization function that must be called to get a random initial point to the system. Will set the
+            attribute rand_init.
+        n_points : int, optional
+            The number of points.
         """
         if dim < 1:
             raise ValueError("Incorrect number of dimensions")
@@ -26,11 +64,20 @@ class AbstractBaseSys(ABC):
             raise ValueError()
         self.time_map = map_func
 
-    def __str__(self): 
+    def __str__(self) -> str:
         return self.__class__.__name__
 
     @property
-    def states(self):
+    def states(self) -> np.ndarray:
+        """Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape (n_points, dim) representing a timeseries of states for the system. If the
+            serie is not defined yet, the system integrates its map function with its default parameters
+            to create a timeserie.
+        """
         if self._states is None:
             try:
                 self.integrate()
@@ -39,12 +86,29 @@ class AbstractBaseSys(ABC):
         return self._states
 
     @states.setter
-    def states(self, new_states):
-        assert (new_states.shape[-1] == self.dim)
+    def states(self, new_states: np.ndarray):
+        """Setter for the system's states.
+
+        Parameters
+        ----------
+        new_states : np.ndarray
+            A new timeseries of states of shape (new_n_points, dim)."""
+        assert(len(new_states.shape) in [1, 2])
+        if len(new_states.shape) == 2:
+            assert(new_states.shape[1] == self.dim)
         self._states = new_states
+        self.n_points = new_states.shape[0]
 
     @property
-    def initial_state(self):
+    def initial_state(self) -> Union[np.ndarray, float]:
+        """Getter for the initial state.
+
+        Returns
+        -------
+        Union[np.ndarray, float]
+            An array representing an initial point for the system. Will be used to solve the Initial
+            Value Problem in the case of DiscreteSys and ContinuousSys.
+        """
         if self._initial_state is None:
             if not callable(self.rand_init):
                 raise ValueError("Either x0 or an initialization function must be provided")
@@ -53,29 +117,58 @@ class AbstractBaseSys(ABC):
         return self._initial_state
 
     @initial_state.setter
-    def initial_state(self, x0):
+    def initial_state(self, x0: Union[np.ndarray, float]):
+        """Setter for the initial state.
+
+        Parameters
+        ----------
+        x0 : Union[np.ndarray, float]
+            An initial value that will be used to solve the Initial Value Problem in the case of DiscreteSys and
+            ContinuousSys.
+        """
         self._initial_state = x0
 
     @abstractmethod
-    def integrate(self, *args, **kwargs):
+    def integrate(self, *args, **kwargs) -> np.ndarray:
+        """The integration scheme to use in the case of formally-defined systems.
+
+        This method is intended to do the all of the necessary integration work for typical types of systems.
+        """
         pass
 
-    def plot(self, show=True, fig=None, fig_argdict=dict(), **trace_kwargs):
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
+             **trace_kwargs) -> go.Figure:
+        """Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+
+        Parameters
+        ----------
+        show : bool
+            Whether to show the figure or just return it.
+        fig : Optional[go.Figure]
+            An optional figure to draw on.
+        fig_kwargs : Optional[Dict]
+            Kwargs to unpack to the fig.add_trace function.
+        trace_kwargs :
+            kwargs to unpack to the go.Scatter function.
+        """
         if self.dim > 3:
             raise NotImplementedError()
 
         if fig is None:
             fig = go.Figure()
 
+        if fig_kwargs is None:
+            fig_kwargs = {}
+
         if self.dim == 1:
             fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                     y=self.states[:, 0], mode='lines', **trace_kwargs), **fig_argdict)
+                                     y=self.states[:, 0], mode='lines', **trace_kwargs), **fig_kwargs)
         elif self.dim == 2:
             fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs),
-                          **fig_argdict)
+                          **fig_kwargs)
         elif self.dim == 3:
             fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode='lines',
-                                       **trace_kwargs), **fig_argdict)
+                                       **trace_kwargs), **fig_kwargs)
 
         if show:
             fig.show()
@@ -83,12 +176,41 @@ class AbstractBaseSys(ABC):
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
+        """A convenient wrapper around pykeos delay_coordinates function.
+
+        See also
+        --------
+        pykeos.tools.delay_coordinates
+        """
         from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
-class SysWrapper(AbstractBaseSys): 
-    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+class SysWrapper(AbstractBaseSys):
+    """A convenient wrapper to easily interface external data in pykeos framework.
+
+    SysWrapper aims at wrapping a little bit of everything. It may represent partially
+    observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+    any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper
+
+    See also
+    --------
+    pykeos.tools.conv_utils : Contains helper function to convert data from and to pykeos.
+    """
+    def __init__(self, ts: np.ndarray, dim: Optional[int] = None, n_points: Optional[int] = None,
+                 time_vec: Optional[np.ndarray] = None, t_min: Optional[Number] = None, t_max: Optional[Number] = None):
+        """
+        Parameters
+        ----------
+        ts : np.ndarray
+            The
+        :param ts:
+        :param dim:
+        :param n_points:
+        :param time_vec:
+        :param t_min:
+        :param t_max:
+        """
         if dim is None: 
             dim = ts.shape[1] if len(ts.shape) > 1 else 1
         if n_points is None: 
