@@ -12,7 +12,7 @@ class Ueda(ContinuousSys):
             _x, _y, _z = X
             return np.asarray([
                 _y,
-                _x **3 - k * _y + A * np.sin(_z),
+                - _x ** 3 - k * _y + A * np.sin(_z),
                 1
             ])
 
