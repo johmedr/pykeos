@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.0" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>pykeos.systems.BaseSys API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">from abc import ABC, abstractmethod
 from typing import Union, Dict, Callable, Optional
+from numbers import Number
 from scipy.integrate import odeint
 
 import plotly.graph_objs as go
@@ -36,12 +37,24 @@ import warnings
 
 
 class AbstractBaseSys(ABC):
-    &#34;&#34;&#34;Abstract class representing common attributes of pykeos systems.
+    &#34;&#34;&#34; Abstract class representing common attributes of pykeos systems.
 
     This class is not supposed to be instancied but is a common template for
     pykeos systems. Defines common functions that are usually applicable to
     either formally-defined discrete or continuous (sampled) systems, as well
     as to unformally-defined (wrapped) systems.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the system
+    map_func : Callable
+        A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+    init_func : Callable, optional
+        The initialization function that must be called to get a random initial point to the system. Will set the
+        attribute rand_init.
+    n_points : int, optional
+        The number of points.
 
     Attributes
     ----------
@@ -58,24 +71,9 @@ class AbstractBaseSys(ABC):
         A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
     rand_init : Optional[Callable]
         The initialization function that must be called to get a random initial point to the system.
-
-
     &#34;&#34;&#34;
     def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
                  n_points: Optional[int] = None):
-        &#34;&#34;&#34;
-        Parameters
-        ----------
-        dim : int
-            The dimension of the system
-        map_func : Callable
-            A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
-        init_func : Callable, optional
-            The initialization function that must be called to get a random initial point to the system. Will set the
-            attribute rand_init.
-        n_points : int, optional
-            The number of points.
-        &#34;&#34;&#34;
         if dim &lt; 1:
             raise ValueError(&#34;Incorrect number of dimensions&#34;)
 
@@ -96,7 +94,7 @@ class AbstractBaseSys(ABC):
 
     @property
     def states(self) -&gt; np.ndarray:
-        &#34;&#34;&#34;Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+        &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
 
         Returns
         -------
@@ -114,7 +112,7 @@ class AbstractBaseSys(ABC):
 
     @states.setter
     def states(self, new_states: np.ndarray):
-        &#34;&#34;&#34;Setter for the system&#39;s states.
+        &#34;&#34;&#34; Setter for the system&#39;s states.
 
         Parameters
         ----------
@@ -128,7 +126,7 @@ class AbstractBaseSys(ABC):
 
     @property
     def initial_state(self) -&gt; Union[np.ndarray, float]:
-        &#34;&#34;&#34;Getter for the initial state.
+        &#34;&#34;&#34; Getter for the initial state.
 
         Returns
         -------
@@ -145,7 +143,7 @@ class AbstractBaseSys(ABC):
 
     @initial_state.setter
     def initial_state(self, x0: Union[np.ndarray, float]):
-        &#34;&#34;&#34;Setter for the initial state.
+        &#34;&#34;&#34; Setter for the initial state.
 
         Parameters
         ----------
@@ -157,15 +155,21 @@ class AbstractBaseSys(ABC):
 
     @abstractmethod
     def integrate(self, *args, **kwargs) -&gt; np.ndarray:
-        &#34;&#34;&#34;The integration scheme to use in the case of formally-defined systems.
+        &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
 
         This method is intended to do the all of the necessary integration work for typical types of systems.
+        
+        See also
+        --------
+        DiscreteSys.integrate
+        ContinuousSys.integrate
+
         &#34;&#34;&#34;
         pass
 
     def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
              **trace_kwargs) -&gt; go.Figure:
-        &#34;&#34;&#34;Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+        &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
         ----------
@@ -203,18 +207,41 @@ class AbstractBaseSys(ABC):
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
-        &#34;&#34;&#34;A convenient wrapper around pykeos delay_coordinates function.
+        &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
-        pykeos.tools.delay_coordinates
+        pykeos.tools.ebdg_utils.delay_coordinates
         &#34;&#34;&#34;
         from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
-class SysWrapper(AbstractBaseSys): 
-    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+class SysWrapper(AbstractBaseSys):
+    &#34;&#34;&#34; A convenient wrapper to easily interface external data in pykeos framework.
+
+    SysWrapper aims at wrapping a little bit of everything. It may represent partially
+    observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+    any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper
+
+    See also
+    --------
+    pykeos.tools.conv_utils : Contains helper function to convert data from and to pykeos.
+    &#34;&#34;&#34;
+    def __init__(self, ts: np.ndarray, dim: Optional[int] = None, n_points: Optional[int] = None,
+                 time_vec: Optional[np.ndarray] = None, t_min: Optional[Number] = None, t_max: Optional[Number] = None):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        ts : np.ndarray
+            The
+        :param ts:
+        :param dim:
+        :param n_points:
+        :param time_vec:
+        :param t_min:
+        :param t_max:
+        &#34;&#34;&#34;
         if dim is None: 
             dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
         if n_points is None: 
@@ -278,6 +305,12 @@ class ContinuousSys(AbstractBaseSys):
             self.time_vec = None
 
     def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+        &#34;&#34;&#34; Solves an initial value problem with odeint.
+        
+        See Also
+        --------
+        DiscreteSys.integrate
+        &#34;&#34;&#34;
         if x0 is not None:
             self.initial_state = x0
 
@@ -317,6 +350,18 @@ class ContinuousSys(AbstractBaseSys):
 pykeos systems. Defines common functions that are usually applicable to
 either formally-defined discrete or continuous (sampled) systems, as well
 as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
@@ -332,30 +377,30 @@ as to unformally-defined (wrapped) systems.</p>
 <dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
 <dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
 <dd>The initialization function that must be called to get a random initial point to the system.</dd>
-</dl>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
-<dd>The dimension of the system</dd>
-<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
-<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
-<dd>The initialization function that must be called to get a random initial point to the system. Will set the
-attribute rand_init.</dd>
-<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>The number of points.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AbstractBaseSys(ABC):
-    &#34;&#34;&#34;Abstract class representing common attributes of pykeos systems.
+    &#34;&#34;&#34; Abstract class representing common attributes of pykeos systems.
 
     This class is not supposed to be instancied but is a common template for
     pykeos systems. Defines common functions that are usually applicable to
     either formally-defined discrete or continuous (sampled) systems, as well
     as to unformally-defined (wrapped) systems.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the system
+    map_func : Callable
+        A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+    init_func : Callable, optional
+        The initialization function that must be called to get a random initial point to the system. Will set the
+        attribute rand_init.
+    n_points : int, optional
+        The number of points.
 
     Attributes
     ----------
@@ -372,24 +417,9 @@ attribute rand_init.</dd>
         A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
     rand_init : Optional[Callable]
         The initialization function that must be called to get a random initial point to the system.
-
-
     &#34;&#34;&#34;
     def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
                  n_points: Optional[int] = None):
-        &#34;&#34;&#34;
-        Parameters
-        ----------
-        dim : int
-            The dimension of the system
-        map_func : Callable
-            A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
-        init_func : Callable, optional
-            The initialization function that must be called to get a random initial point to the system. Will set the
-            attribute rand_init.
-        n_points : int, optional
-            The number of points.
-        &#34;&#34;&#34;
         if dim &lt; 1:
             raise ValueError(&#34;Incorrect number of dimensions&#34;)
 
@@ -410,7 +440,7 @@ attribute rand_init.</dd>
 
     @property
     def states(self) -&gt; np.ndarray:
-        &#34;&#34;&#34;Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+        &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
 
         Returns
         -------
@@ -428,7 +458,7 @@ attribute rand_init.</dd>
 
     @states.setter
     def states(self, new_states: np.ndarray):
-        &#34;&#34;&#34;Setter for the system&#39;s states.
+        &#34;&#34;&#34; Setter for the system&#39;s states.
 
         Parameters
         ----------
@@ -442,7 +472,7 @@ attribute rand_init.</dd>
 
     @property
     def initial_state(self) -&gt; Union[np.ndarray, float]:
-        &#34;&#34;&#34;Getter for the initial state.
+        &#34;&#34;&#34; Getter for the initial state.
 
         Returns
         -------
@@ -459,7 +489,7 @@ attribute rand_init.</dd>
 
     @initial_state.setter
     def initial_state(self, x0: Union[np.ndarray, float]):
-        &#34;&#34;&#34;Setter for the initial state.
+        &#34;&#34;&#34; Setter for the initial state.
 
         Parameters
         ----------
@@ -471,15 +501,21 @@ attribute rand_init.</dd>
 
     @abstractmethod
     def integrate(self, *args, **kwargs) -&gt; np.ndarray:
-        &#34;&#34;&#34;The integration scheme to use in the case of formally-defined systems.
+        &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
 
         This method is intended to do the all of the necessary integration work for typical types of systems.
+        
+        See also
+        --------
+        DiscreteSys.integrate
+        ContinuousSys.integrate
+
         &#34;&#34;&#34;
         pass
 
     def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
              **trace_kwargs) -&gt; go.Figure:
-        &#34;&#34;&#34;Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+        &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
         ----------
@@ -517,11 +553,11 @@ attribute rand_init.</dd>
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
-        &#34;&#34;&#34;A convenient wrapper around pykeos delay_coordinates function.
+        &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
-        pykeos.tools.delay_coordinates
+        pykeos.tools.ebdg_utils.delay_coordinates
         &#34;&#34;&#34;
         from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
@@ -553,7 +589,7 @@ Value Problem in the case of DiscreteSys and ContinuousSys.</dd>
 </summary>
 <pre><code class="python">@property
 def initial_state(self) -&gt; Union[np.ndarray, float]:
-    &#34;&#34;&#34;Getter for the initial state.
+    &#34;&#34;&#34; Getter for the initial state.
 
     Returns
     -------
@@ -585,7 +621,7 @@ to create a timeserie.</dd>
 </summary>
 <pre><code class="python">@property
 def states(self) -&gt; np.ndarray:
-    &#34;&#34;&#34;Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+    &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
 
     Returns
     -------
@@ -611,17 +647,17 @@ def states(self) -&gt; np.ndarray:
 <dd>
 <div class="desc"><p>A convenient wrapper around pykeos delay_coordinates function.</p>
 <h2 id="see-also">See Also</h2>
-<p><code>pykeos.tools.delay_coordinates</code></p></div>
+<p><code><a title="pykeos.tools.ebdg_utils.delay_coordinates" href="../tools/ebdg_utils.html#pykeos.tools.ebdg_utils.delay_coordinates">delay_coordinates()</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
-    &#34;&#34;&#34;A convenient wrapper around pykeos delay_coordinates function.
+    &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
     See also
     --------
-    pykeos.tools.delay_coordinates
+    pykeos.tools.ebdg_utils.delay_coordinates
     &#34;&#34;&#34;
     from ..tools import delay_coordinates
     return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
@@ -632,16 +668,25 @@ def states(self) -&gt; np.ndarray:
 </code></dt>
 <dd>
 <div class="desc"><p>The integration scheme to use in the case of formally-defined systems.</p>
-<p>This method is intended to do the all of the necessary integration work for typical types of systems.</p></div>
+<p>This method is intended to do the all of the necessary integration work for typical types of systems.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="pykeos.systems.BaseSys.DiscreteSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">DiscreteSys.integrate()</a></code>
+<code><a title="pykeos.systems.BaseSys.ContinuousSys.integrate" href="#pykeos.systems.BaseSys.ContinuousSys.integrate">ContinuousSys.integrate()</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
 def integrate(self, *args, **kwargs) -&gt; np.ndarray:
-    &#34;&#34;&#34;The integration scheme to use in the case of formally-defined systems.
+    &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
 
     This method is intended to do the all of the necessary integration work for typical types of systems.
+    
+    See also
+    --------
+    DiscreteSys.integrate
+    ContinuousSys.integrate
+
     &#34;&#34;&#34;
     pass</code></pre>
 </details>
@@ -668,7 +713,7 @@ kwargs to unpack to the go.Scatter function.</p></div>
 </summary>
 <pre><code class="python">def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
          **trace_kwargs) -&gt; go.Figure:
-    &#34;&#34;&#34;Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+    &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
     Parameters
     ----------
@@ -718,6 +763,18 @@ kwargs to unpack to the go.Scatter function.</p></div>
 pykeos systems. Defines common functions that are usually applicable to
 either formally-defined discrete or continuous (sampled) systems, as well
 as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
@@ -733,18 +790,6 @@ as to unformally-defined (wrapped) systems.</p>
 <dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
 <dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
 <dd>The initialization function that must be called to get a random initial point to the system.</dd>
-</dl>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
-<dd>The dimension of the system</dd>
-<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
-<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
-<dd>The initialization function that must be called to get a random initial point to the system. Will set the
-attribute rand_init.</dd>
-<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>The number of points.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -760,6 +805,12 @@ attribute rand_init.</dd>
             self.time_vec = None
 
     def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+        &#34;&#34;&#34; Solves an initial value problem with odeint.
+        
+        See Also
+        --------
+        DiscreteSys.integrate
+        &#34;&#34;&#34;
         if x0 is not None:
             self.initial_state = x0
 
@@ -792,13 +843,53 @@ attribute rand_init.</dd>
 <li><a title="pykeos.systems.Ueda.Ueda" href="Ueda.html#pykeos.systems.Ueda.Ueda">Ueda</a></li>
 <li><a title="pykeos.systems.VanDerPol.VanDerPol" href="VanDerPol.html#pykeos.systems.VanDerPol.VanDerPol">VanDerPol</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pykeos.systems.BaseSys.ContinuousSys.integrate"><code class="name flex">
+<span>def <span class="ident">integrate</span></span>(<span>self, time_vec=None, x0=None, update_states=True, **odeint_kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Solves an initial value problem with odeint.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="pykeos.systems.BaseSys.DiscreteSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">DiscreteSys.integrate()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+    &#34;&#34;&#34; Solves an initial value problem with odeint.
+    
+    See Also
+    --------
+    DiscreteSys.integrate
+    &#34;&#34;&#34;
+    if x0 is not None:
+        self.initial_state = x0
+
+    if time_vec is None:
+        if self.time_vec is None:
+            raise ValueError(&#34;time_vec must be provided&#34;)
+        else:
+            time_vec = self.time_vec
+
+    states = odeint(self.time_map, self.initial_state, time_vec, **odeint_kwargs)
+
+    if update_states:
+        self.states = states
+        self.time_vec = time_vec
+        return self
+
+    else:
+        return states</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></b></code>:
 <ul class="hlist">
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
-<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
 <li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
 </ul>
@@ -815,6 +906,18 @@ attribute rand_init.</dd>
 pykeos systems. Defines common functions that are usually applicable to
 either formally-defined discrete or continuous (sampled) systems, as well
 as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
@@ -830,18 +933,6 @@ as to unformally-defined (wrapped) systems.</p>
 <dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
 <dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
 <dd>The initialization function that must be called to get a random initial point to the system.</dd>
-</dl>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
-<dd>The dimension of the system</dd>
-<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
-<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
-<dd>The initialization function that must be called to get a random initial point to the system. Will set the
-attribute rand_init.</dd>
-<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>The number of points.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -897,48 +988,58 @@ attribute rand_init.</dd>
 </dd>
 <dt id="pykeos.systems.BaseSys.SysWrapper"><code class="flex name class">
 <span>class <span class="ident">SysWrapper</span></span>
-<span>(</span><span>ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None)</span>
+<span>(</span><span>ts: numpy.ndarray, dim: Union[int, NoneType] = None, n_points: Union[int, NoneType] = None, time_vec: Union[numpy.ndarray, NoneType] = None, t_min: Union[numbers.Number, NoneType] = None, t_max: Union[numbers.Number, NoneType] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract class representing common attributes of pykeos systems.</p>
-<p>This class is not supposed to be instancied but is a common template for
-pykeos systems. Defines common functions that are usually applicable to
-either formally-defined discrete or continuous (sampled) systems, as well
-as to unformally-defined (wrapped) systems.</p>
-<h2 id="attributes">Attributes</h2>
+<div class="desc"><p>A convenient wrapper to easily interface external data in pykeos framework.</p>
+<p>SysWrapper aims at wrapping a little bit of everything. It may represent partially
+observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper</p>
+<h2 id="see-also">See Also</h2>
 <dl>
-<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
-<dd>The dimension of the system.</dd>
-<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code></dt>
-<dd>The number of points.</dd>
-<dt><strong><code>states</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
-(if defined) from an initial_state (returned by rand_init()) for a duration of n_points.</dd>
-<dt><strong><code>time_vec</code></strong> :&ensp;<code>Optional[np.ndarray]</code></dt>
-<dd>The time vector associated with the time series. Is usually None for discrete systems.</dd>
-<dt><strong><code>time_map</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
-<dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
-<dd>The initialization function that must be called to get a random initial point to the system.</dd>
+<dt><code><a title="pykeos.tools.conv_utils" href="../tools/conv_utils.html">pykeos.tools.conv_utils</a></code></dt>
+<dd>Contains helper function to convert data from and to pykeos.</dd>
 </dl>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
-<dd>The dimension of the system</dd>
-<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
-<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
-<dd>The initialization function that must be called to get a random initial point to the system. Will set the
-attribute rand_init.</dd>
-<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>The number of points.</dd>
-</dl></div>
+<dt><strong><code>ts</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The</dd>
+</dl>
+<p>:param ts:
+:param dim:
+:param n_points:
+:param time_vec:
+:param t_min:
+:param t_max:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SysWrapper(AbstractBaseSys): 
-    def __init__(self, ts, dim=None, n_points=None, time_vec=None, t_min=None, t_max=None):
+<pre><code class="python">class SysWrapper(AbstractBaseSys):
+    &#34;&#34;&#34; A convenient wrapper to easily interface external data in pykeos framework.
+
+    SysWrapper aims at wrapping a little bit of everything. It may represent partially
+    observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+    any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper
+
+    See also
+    --------
+    pykeos.tools.conv_utils : Contains helper function to convert data from and to pykeos.
+    &#34;&#34;&#34;
+    def __init__(self, ts: np.ndarray, dim: Optional[int] = None, n_points: Optional[int] = None,
+                 time_vec: Optional[np.ndarray] = None, t_min: Optional[Number] = None, t_max: Optional[Number] = None):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        ts : np.ndarray
+            The
+        :param ts:
+        :param dim:
+        :param n_points:
+        :param time_vec:
+        :param t_min:
+        :param t_max:
+        &#34;&#34;&#34;
         if dim is None: 
             dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
         if n_points is None: 
@@ -1011,6 +1112,9 @@ attribute rand_init.</dd>
 </li>
 <li>
 <h4><code><a title="pykeos.systems.BaseSys.ContinuousSys" href="#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></code></h4>
+<ul class="">
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.integrate" href="#pykeos.systems.BaseSys.ContinuousSys.integrate">integrate</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="pykeos.systems.BaseSys.DiscreteSys" href="#pykeos.systems.BaseSys.DiscreteSys">DiscreteSys</a></code></h4>
@@ -1024,7 +1128,7 @@ attribute rand_init.</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.0</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
 </body>
 </html>

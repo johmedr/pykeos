@@ -9,12 +9,24 @@ import warnings
 
 
 class AbstractBaseSys(ABC):
-    """Abstract class representing common attributes of pykeos systems.
+    """ Abstract class representing common attributes of pykeos systems.
 
     This class is not supposed to be instancied but is a common template for
     pykeos systems. Defines common functions that are usually applicable to
     either formally-defined discrete or continuous (sampled) systems, as well
     as to unformally-defined (wrapped) systems.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the system
+    map_func : Callable
+        A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+    init_func : Callable, optional
+        The initialization function that must be called to get a random initial point to the system. Will set the
+        attribute rand_init.
+    n_points : int, optional
+        The number of points.
 
     Attributes
     ----------
@@ -31,24 +43,9 @@ class AbstractBaseSys(ABC):
         A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
     rand_init : Optional[Callable]
         The initialization function that must be called to get a random initial point to the system.
-
-
     """
     def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
                  n_points: Optional[int] = None):
-        """
-        Parameters
-        ----------
-        dim : int
-            The dimension of the system
-        map_func : Callable
-            A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
-        init_func : Callable, optional
-            The initialization function that must be called to get a random initial point to the system. Will set the
-            attribute rand_init.
-        n_points : int, optional
-            The number of points.
-        """
         if dim < 1:
             raise ValueError("Incorrect number of dimensions")
 
@@ -69,7 +66,7 @@ class AbstractBaseSys(ABC):
 
     @property
     def states(self) -> np.ndarray:
-        """Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+        """ Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
 
         Returns
         -------
@@ -87,7 +84,7 @@ class AbstractBaseSys(ABC):
 
     @states.setter
     def states(self, new_states: np.ndarray):
-        """Setter for the system's states.
+        """ Setter for the system's states.
 
         Parameters
         ----------
@@ -101,7 +98,7 @@ class AbstractBaseSys(ABC):
 
     @property
     def initial_state(self) -> Union[np.ndarray, float]:
-        """Getter for the initial state.
+        """ Getter for the initial state.
 
         Returns
         -------
@@ -118,7 +115,7 @@ class AbstractBaseSys(ABC):
 
     @initial_state.setter
     def initial_state(self, x0: Union[np.ndarray, float]):
-        """Setter for the initial state.
+        """ Setter for the initial state.
 
         Parameters
         ----------
@@ -130,15 +127,21 @@ class AbstractBaseSys(ABC):
 
     @abstractmethod
     def integrate(self, *args, **kwargs) -> np.ndarray:
-        """The integration scheme to use in the case of formally-defined systems.
+        """ The integration scheme to use in the case of formally-defined systems.
 
         This method is intended to do the all of the necessary integration work for typical types of systems.
+        
+        See also
+        --------
+        DiscreteSys.integrate
+        ContinuousSys.integrate
+
         """
         pass
 
     def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
              **trace_kwargs) -> go.Figure:
-        """Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+        """ Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
         ----------
@@ -176,18 +179,18 @@ class AbstractBaseSys(ABC):
         return fig
 
     def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
-        """A convenient wrapper around pykeos delay_coordinates function.
+        """ A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
-        pykeos.tools.delay_coordinates
+        pykeos.tools.ebdg_utils.delay_coordinates
         """
         from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
 
 
 class SysWrapper(AbstractBaseSys):
-    """A convenient wrapper to easily interface external data in pykeos framework.
+    """ A convenient wrapper to easily interface external data in pykeos framework.
 
     SysWrapper aims at wrapping a little bit of everything. It may represent partially
     observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
@@ -274,6 +277,12 @@ class ContinuousSys(AbstractBaseSys):
             self.time_vec = None
 
     def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+        """ Solves an initial value problem with odeint.
+        
+        See Also
+        --------
+        DiscreteSys.integrate
+        """
         if x0 is not None:
             self.initial_state = x0
 
