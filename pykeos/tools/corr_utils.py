@@ -184,7 +184,7 @@ def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_r
         return alpha
 
 
-def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange: tuple=None):
+def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange: tuple=None, dt=1):
     try:
         from pyunicorn.timeseries import RecurrencePlot
     except ImportError:
@@ -208,9 +208,9 @@ def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange:
     D_l = D_l[D_l != 0]
 
     if full_output:
-        return np.mean(D_l), np.std(D_l, ddof=1) / D_l.size
+        return np.mean(D_l) / dt, np.std(D_l, ddof=1) / D_l.size
     else:
-        return np.mean(D_l)
+        return np.mean(D_l) / dt
 
 # def ks_estimation(x: np.ndarray, dims: list, rvals=None, rmin=None, rmax=None, omit_plateau=True, lag:int=1):
 #     if isinstance(dims, int):

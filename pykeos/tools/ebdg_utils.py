@@ -32,7 +32,7 @@ def delay_coordinates(
 
 
 def select_embedding_lag(
-        data: Union[np.ndarray, AbstractBaseSys],
+        data: Union[np.ndarray, AbstractBaseSys, pd.Series],
         lag_range: Union[int, tuple] = (2, 500),
         method: str = "acf",
         criterion: float = 1/np.e,
@@ -51,6 +51,8 @@ def select_embedding_lag(
     elif isinstance(data, AbstractBaseSys):
         from ..tools.conv_utils import to_pandas_series
         ts = to_pandas_series(data)
+    elif isinstance(data, pd.Series):
+        ts = data.copy()
 
     dcurve = None
     ref = None
@@ -71,7 +73,7 @@ def select_embedding_lag(
     if plot:
         fig = go.Figure()
         fig.add_trace(go.Scatter(y=dcurve, mode="lines"))
-        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type="line")
+        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type="line", line_color="indianred")
         fig.show()
 
     return lag

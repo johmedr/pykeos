@@ -7,4 +7,4 @@ from .conv_utils import from_array, to_array, from_pandas_series, to_pandas_seri
 
 
 from .corr_utils import *
-from .plot_utils import plot_rp
+from .plot_utils import plot_rp, Scale4Latex

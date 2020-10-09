@@ -52,3 +52,40 @@ def plot_rp(sys: Union[AbstractBaseSys, None] = None,
     fig.update_layout(width=width, height=int(width / rp_height_ratio))
 
     return fig
+
+
+class Scale4Latex:
+    DEFAULTS = {
+        'img_width': 1920,
+        'img_height': 1080,
+        'font_size': 10,
+        'title_font_size': 11,
+        'font_family': 'Computer Modern',
+        'line_width': 1,
+        'marker_size': 4,
+    }
+
+    def __init__(self, output_img_width=1920, latex_img_width=624, **kwargs):
+        self._scale = output_img_width / latex_img_width
+        self._img_width = output_img_width
+        self._latex_img_width = latex_img_width
+        for k, v in self.__class__.DEFAULTS.items():
+            value = kwargs[k] if k in kwargs.keys() else v
+            if isinstance(value, int) or isinstance(value, float):
+                self.__dict__.update({k: self._scale_object(value)})
+            else:
+                self.__dict__.update({k:value})
+
+    def _scale_object(self, o):
+        return int(self._scale * o)
+
+    @property
+    def img_width(self):
+        return self._img_width
+
+    @property
+    def latex_img_width(self):
+        return self._latex_img_width
+
+    def scale_font(self, font_size):
+        return self._scale_object(font_size)
