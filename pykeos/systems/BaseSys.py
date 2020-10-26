@@ -139,8 +139,9 @@ class AbstractBaseSys(ABC):
         """
         pass
 
-    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
-             **trace_kwargs) -> go.Figure:
+
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = "lines",
+             fig_kwargs: Optional[Dict] = None, **trace_kwargs) -> go.Figure:
         """ Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
@@ -149,6 +150,10 @@ class AbstractBaseSys(ABC):
             Whether to show the figure or just return it.
         fig : Optional[go.Figure]
             An optional figure to draw on.
+        mode : std
+            A scatterplot mode compatible with plotly (e.g. 'lines', 'markers', 'lines+markers')
+        transient_index : int
+            Stop index for transients. We will omit [:transient_index].
         fig_kwargs : Optional[Dict]
             Kwargs to unpack to the fig.add_trace function.
         trace_kwargs :
@@ -163,14 +168,19 @@ class AbstractBaseSys(ABC):
         if fig_kwargs is None:
             fig_kwargs = {}
 
+        if transient_index is None:
+            states = self.states
+        else:
+            states = self.states[transient_index:]
+
         if self.dim == 1:
             fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                     y=self.states[:, 0], mode='lines', **trace_kwargs), **fig_kwargs)
+                                     y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
         elif self.dim == 2:
-            fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode='lines', **trace_kwargs),
+            fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
                           **fig_kwargs)
         elif self.dim == 3:
-            fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode='lines',
+            fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
                                        **trace_kwargs), **fig_kwargs)
 
         if show:
@@ -178,7 +188,7 @@ class AbstractBaseSys(ABC):
 
         return fig
 
-    def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -> np.ndarray:
+    def delay_coordinates(self, dim: int, lag: Union[int, str] = "auto", axis: int = 0, *args, **kwargs):
         """ A convenient wrapper around pykeos delay_coordinates function.
 
         See also
@@ -186,7 +196,7 @@ class AbstractBaseSys(ABC):
         pykeos.tools.ebdg_utils.delay_coordinates
         """
         from ..tools import delay_coordinates
-        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)
 
 
 class SysWrapper(AbstractBaseSys):
