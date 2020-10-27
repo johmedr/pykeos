@@ -16,9 +16,11 @@ def delay_coordinates(
         return_array: bool = False,
         *args, **kwargs
     ) -> Union[np.ndarray, SysWrapper]:
+    if len(ts.shape) > 1:
+        ts = ts[:, axis]
 
     if lag == "auto":
-        lag = select_embedding_lag(ts, *args, **kwargs)
+        lag = select_embedding_lag(ts[:, axis] if len(ts.shape) > 1 else ts, *args, **kwargs)
 
     if len(ts.shape) == 1:
         data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
