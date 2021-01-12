@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='pykeos',
-    version='0.0.2dev1',
+    version='0.0.2dev5',
     author='Johan Medrano',
     python_requires='>=3.4',
     author_email='',
@@ -20,8 +20,7 @@ setup(
     install_requires=(
         'nolds',
         "plotly",
-        'plotly_express',
-        "pyunicorn"
+        'plotly_express'
     ),
     classifiers=[
         'Development Status :: 3 - Alpha',

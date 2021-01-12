@@ -1,11 +1,12 @@
 from ..systems import AbstractBaseSys
-from ..tools import rule_of_thumb
+from ..tools import reference_rule
 
 import plotly.graph_objs as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-import pyunicorn.timeseries as puts
+
+
 import numpy as np
 
 from typing import Union
@@ -14,7 +15,7 @@ black_white_colorscale = [[0, "rgb(255, 255, 255)"],[1, "rgb(0, 0, 0)"]]
 
 
 def plot_rp(sys: Union[AbstractBaseSys, None] = None,
-            rp: Union[np.ndarray, puts.RecurrencePlot, None] = None,
+            rp: Union[np.ndarray, None] = None,
             sig: Union[np.ndarray, None] = None,
             time_vec: Union[np.ndarray, None] = None,
             width: int = 1080,
@@ -37,11 +38,12 @@ def plot_rp(sys: Union[AbstractBaseSys, None] = None,
 
     _rp = None
     if rp is None:
-        _rp = puts.RecurrencePlot(_ts, threshold=rule_of_thumb(_ts, norm_p='inf')).R
+        import pyunicorn.timeseries as puts
+        _rp = puts.RecurrencePlot(_ts, threshold=reference_rule(_ts, norm_p='inf')).R
     elif isinstance(rp, np.ndarray):
         _rp = rp
-    elif isinstance(rp, puts.RecurrencePlot):
-        _rp = rp.R
+    # elif isinstance(rp, puts.RecurrencePlot):
+    #     _rp = rp.R
 
     fig = make_subplots(rows=2, row_heights=[rp_height_ratio, 1-rp_height_ratio-vspacing_ratio], vertical_spacing=vspacing_ratio)
 

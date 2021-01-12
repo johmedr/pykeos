@@ -188,13 +188,15 @@ class AbstractBaseSys(ABC):
 
         return fig
 
-    def delay_coordinates(self, dim: int, lag: Union[int, str] = "auto", axis: int = 0, *args, **kwargs):
+    def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = "auto", axis: int = 0, *args, **kwargs):
         """ A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
         pykeos.tools.ebdg_utils.delay_coordinates
         """
+        if dim is None:
+            dim = self.dim
         from ..tools import delay_coordinates
         return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)
 
@@ -245,7 +247,7 @@ class SysWrapper(AbstractBaseSys):
         self.n_points = n_points
         self.time_vec = time_vec
         self._states = ts if len(ts.shape) > 1 else ts[:, None]
-        self._initial_state = self._states[0, :]
+        self._initial_state = self._states[0]
 
     def integrate(self, *args, **kwargs):
         raise RuntimeError("Instance of <SysWrapper> is not supposed to be integrated.")

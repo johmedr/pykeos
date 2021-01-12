@@ -1,7 +1,10 @@
 import numpy as np
-from ..tools import n_ball_volume, n_sphere_area, delay_coordinates
+from ..tools import n_ball_volume, n_sphere_area, delay_coordinates, lstsqr
+from .math_utils import _lstsqr_design_matrix
+from scipy.special import gamma
 from nolds.measures import poly_fit
 from tqdm import tqdm
+from typing import Union
 
 import plotly.graph_objs as go
 
@@ -60,29 +63,68 @@ def dsty_est(x, samples, r, norm_p=1):
     return np.apply_along_axis(_fast_count_row, 1, x, samples, r, norm_p).astype(np.float64) / (n_ball_volume(dim, norm_p) * r**dim * samples.shape[0])
 
 
-def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
+def reference_rule_alpha(p: Union[float, int], d: int):
+    # if d > 1:
+    #     return (
+    #                    ((d * n_ball_volume(d, p) * (2 * np.sqrt(np.pi))**d) / (d + 2))
+    #                  * ((3 * gamma((d + 2) / p + 1))/(2 * gamma((d-1)/p + 1) * gamma(3 / p + 1)))**2
+    #            ) ** (1./(d+4))
+    # else:
+    #     return (12 * np.sqrt(np.pi)) ** (1 / 5.)
+    if d == 1:
+        return 1.843
+
+    return (
+        (4* (2 * np.sqrt(np.pi))**d *(3 * gamma(1+(d+2)/p) * gamma(1+1./p))**2) / ((d + 2) * n_ball_volume(d,p) * (gamma(3/p + 1) * gamma(d/p + 1))**2)
+    )**(1/(d+4))
+
+
+def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
     n = x.shape[0]
-    d = 1
-    if len(x.shape) == 2:
-        d = x.shape[1]
+    if dim == 'auto':
+        d = 1
+        if len(x.shape) == 2:
+            d = x.shape[1]
+
+    elif isinstance(dim, int):
+        d = dim
+
+    # print(d)
+    std = np.sqrt(x.var(axis=0, ddof=1).mean())
+    from scipy import stats
+    iqr = stats.iqr(x)
+    scale = min(std, iqr/1.34)
+
+    gamma_n = n ** (-1/(d+4))
 
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
+    alpha_p_d = reference_rule_alpha(norm_p, d)
+    return gamma_n * alpha_p_d * scale
 
-    std = np.sqrt(x.var(axis=0, ddof=1).mean())
+# def rule_of_thumb(x: np.ndarray, norm_p=2, version: str = 'normal') -> float:
+#     n = x.shape[0]
+#     d = 1
+#     if len(x.shape) == 2:
+#         d = x.shape[1]
+#
+#     if norm_p in ['manhattan', 'euclidean', 'supremum']:
+#         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
+#
+#     std = np.sqrt(x.var(axis=0, ddof=1).mean())
+#
+#
+#     # version 1
+#     if version == 'normal':
+#         return std * ((9. * n_ball_volume(d, norm_p) * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
+#     elif version == 'scott':
+#         return std * 3.5 * n ** (-1 / (d + 2))
+#     # version 2
+#     # return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
 
 
-    # version 1
-    if version == 'normal':
-        return std * ((9. * n_ball_volume(d, norm_p) * (2 * np.sqrt(np.pi)) ** d)/ ((d + 2) * n)) ** (1/(d+4))
-    elif version == 'scott':
-        return std * 3.5 * n ** (-1 / (d + 2))
-    # version 2
-    # return std * (((d + 2)**2 * (2*np.sqrt(np.pi))**d) / (n * n_ball_volume(d, norm_p) * (1/2. * d + 1/4. * d**2))) ** (1/(d+4))
-
-
-def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True,
-                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, remove_tail=True, verbose=True):
+def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True, norm_p=2, method='lstsqr',
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, remove_tail=True, verbose=False):
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -103,13 +145,15 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
         else:
             rvals = np.logspace(- log(x.shape[0]) + log(x.std()) - 2, 5 + log(x.std()), nr, base=log_base)
     # print(rvals)
-    csums = np.asarray([corr_sum(x, r) for r in tqdm(rvals, desc="Computing correlation sums")])
+    csums = np.asarray([corr_sum(x, r, norm_p=norm_p)
+                        for r in (tqdm(rvals, desc="Computing correlation sums") if verbose else rvals)])
     # print(csums)
-    orig_log_csums = log(csums[csums > 0])
+    orig_log_csums =log(csums[csums > 0])
     orig_log_rvals = log(rvals[csums > 0])
 
     log_csums = np.asarray(orig_log_csums)
     log_rvals = np.asarray(orig_log_rvals)
+
 
     if remove_tail:
         filter = log_csums > -log(x.shape[0])
@@ -127,11 +171,17 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
             if delta > 0:
                 filter[i] = True
 
-
         log_rvals = log_rvals[filter]
         log_csums = log_csums[filter]
 
-    poly = poly_fit(log_rvals, log_csums, degree=1)
+    # poly = poly_fit(log_rvals, log_csums, degree=1)
+    if len(log_rvals) == 0:
+        raise ValueError('bad estim')
+
+    if method == 'lstsqr':
+        poly = lstsqr(_lstsqr_design_matrix(log_rvals), log_csums)
+    else:
+        poly = np.polyfit(log_rvals, log_csums, deg=1)
 
     if plot:
         if fig is None:
@@ -149,6 +199,47 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     else:
         return poly[0]
 
+def approximate_d2(x: object, r_opt: object = None, meaningfull_range: object = (0.5, 1.), n_evals: object = 10, base: object = 10.,
+                   norm_p: float = float('inf'),
+                   method: object = 'fit',
+                   full_output: object = False, output_curve = False) -> float:
+    if r_opt is None:
+        r_opt = reference_rule(x, norm_p=norm_p)
+    if base ==10:
+        log = np.log10
+    elif base == np.e:
+        log = np.log
+    else:
+        log = lambda x: np.log(x) / np.log(base)
+
+    rvals = np.logspace(log(r_opt * meaningfull_range[0]), log(r_opt*meaningfull_range[1]), n_evals, base=base)
+    _csum =lambda r : corr_sum(x, r, norm_p=norm_p)
+    csums = np.vectorize(_csum)(rvals)
+    csums = log(csums)
+    csums = csums[csums == csums]
+    rvals = log(rvals)
+
+    if method == 'tangent':
+        slopes = []
+        for i in range(1, len(rvals)):
+            rsup = rvals[i]
+            for j in range(i):
+                rinf = rvals[j]
+                slopes.append((csums[i] - csums[j])/(rsup - rinf))
+
+        return np.mean(slopes)
+    elif method == 'fit':
+        poly = lstsqr(_lstsqr_design_matrix(rvals), csums)
+        # poly = poly_fit(rvals, csums, degree=1)
+        if full_output:
+            if output_curve:
+                return poly[0], poly[1],  log(r_opt), rvals, csums
+            else:
+                return poly[0], poly[1],  log(r_opt)
+        else:
+            return poly[0]
+
+
 
 def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
 
@@ -159,7 +250,7 @@ def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_r
     n_points = x.shape[0]
 
     if r_opt is None:
-        r_opt = rule_of_thumb(x, norm_p=norm_p)
+        r_opt = reference_rule(x, norm_p=norm_p)
 
     if base == 10:
         log = np.log10
@@ -191,7 +282,7 @@ def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange:
         raise ImportError('The pyunicorn module is required to approximate K2. ')
 
     if r == 'auto':
-        r = rule_of_thumb(x, norm_p=float('inf'))
+        r = reference_rule(x, norm_p=1)
     if max_l is None:
         max_l = -1
         
@@ -202,8 +293,11 @@ def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange:
         mrange = (2 + 1 , max_l - 1)
 
     for i in range(mrange[0], mrange[1]):
-        if np.log(N_l[i]) > - np.inf and np.log(N_l[i + 1]) > - np.inf:
-            D_l[i] = np.log(N_l[i]) - np.log(N_l[i + 1])
+        if N_l[i] > 0 and N_l[i + 1] > 0:
+            li = np.log(N_l[i])
+            lip1 = np.log(N_l[i+1])
+            D_l[i] = li - lip1
+
     D_l = np.nan_to_num(D_l)
     D_l = D_l[D_l != 0]
 

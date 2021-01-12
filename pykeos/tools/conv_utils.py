@@ -12,9 +12,11 @@ def from_data_frame(df: pd.DataFrame) -> SysWrapper:
     return SysWrapper(df, dim=len(df.columns), n_points=len(df.index), time_vec=np.asarray(df.index))
 
 
-def to_pandas_series(sys: AbstractBaseSys) -> pd.Series:
-    assert(sys.dim == 1)
-    return pd.Series(data=sys.states, index=sys.time_vec)
+def to_pandas_series(sys: AbstractBaseSys, axis: int = 0) -> pd.Series:
+    if sys.dim > 1:
+        return pd.Series(data=sys.states[:, axis], index=sys.time_vec)
+    else:
+        return pd.Series(data=sys.states, index=sys.time_vec)
 
 
 def from_pandas_series(ts: pd.Series) -> SysWrapper:
