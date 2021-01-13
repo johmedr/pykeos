@@ -1,7 +1,7 @@
 .idea
 **/*.egg-info
 **/__pycache__
-**/examples/data
+**/examples/data*
 **/examples/logs
 **/examples/images
 dist
@@ -10,4 +10,4 @@ build
 **/*.pdf
 **/*.svg
 **/*.pkl
-**/*.logexamples/datasets
+**/*.log
