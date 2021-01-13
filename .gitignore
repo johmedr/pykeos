@@ -10,4 +10,4 @@ build
 **/*.pdf
 **/*.svg
 **/*.pkl
-**/*.log
+**/*.logexamples/datasets
