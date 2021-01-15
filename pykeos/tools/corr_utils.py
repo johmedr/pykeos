@@ -275,43 +275,98 @@ def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_r
         return alpha
 
 
-def approximate_k2(x: np.ndarray, r='auto', max_l=15, full_output=False, mrange: tuple=None, dt=1):
+def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_diag_number=0,
+                   min_consecutive_nonzero_values=5, take_zero_splitted_slice='first', dt=1, method='avg', rp=None,
+                   full_output=False):
+# def approximate_k2(x: np.ndarray, r='auto', L_min=None, max_l=15, full_output=False, mrange: tuple=None, dt=1):
     try:
         from pyunicorn.timeseries import RecurrencePlot
     except ImportError:
         raise ImportError('The pyunicorn module is required to approximate K2. ')
 
     if r == 'auto':
-        r = reference_rule(x, norm_p=1)
-    if max_l is None:
-        max_l = -1
-        
-    N_l = RecurrencePlot(x, threshold=r, silence_level=3).diagline_dist()[:max_l]
-    D_l = np.zeros_like(N_l, dtype=float)
+        r = reference_rule(x, norm_p=float('inf'))
+    # if max_l is None:
+    #     max_l = -1
 
-    if mrange is None:
-        mrange = (2 + 1 , max_l - 1)
+    if rp is None:
+        if x is None:
+            raise AttributeError("Either x or a pyunicorn RecurrencePlot must be supplied")
+        rp = RecurrencePlot(x, threshold=r, silence_level=3, metric="supremum")
 
-    for i in range(mrange[0], mrange[1]):
-        if N_l[i] > 0 and N_l[i + 1] > 0:
-            li = np.log(N_l[i])
-            lip1 = np.log(N_l[i+1])
-            D_l[i] = li - lip1
+    if L_max is None:
+        L_max = rp.max_diaglength()
 
-    D_l = np.nan_to_num(D_l)
-    D_l = D_l[D_l != 0]
+    if L_min is not None:
+        if isinstance(L_min, str):
+            L_min = int(float(L_min.split()[0]) * rp.average_diaglength())
+
+        L_min = min(L_min, 2)
+    else:
+        L_min = 2
+
+
+    import itertools
+    import operator
+    # Entry i corresponds to diagline of size i
+    diagline_dist = rp.diagline_dist()[L_min:L_max]
+    diagline_dist_slices = []
+
+    nonzero_diagline_idx = [[i for i,value in it]
+                            for key,it in itertools.groupby(enumerate(diagline_dist > min_diag_number), key=operator.itemgetter(1))
+                            if key != 0]
+    if take_zero_splitted_slice == 'all':
+        diagline_dist_slices = [diagline_dist[s] for s in nonzero_diagline_idx
+                                if len(s) > min_consecutive_nonzero_values]
+    elif take_zero_splitted_slice == "first":
+        for s in nonzero_diagline_idx:
+            if len(s) > min_consecutive_nonzero_values:
+                diagline_dist_slices = [diagline_dist[s]]
+                break
+
+    if len(diagline_dist_slices) == 0:
+        raise ValueError('Cannot find sufficient support to estimate K2. Please check the timeseries for NaN or inf '
+                         'values or manually provide a valid recurrence plot.')
+
+    k2_list = []
+
+    if method == 'fit':
+        x_vals = []
+        y_vals = []
+        for N_l in diagline_dist_slices:
+            # bad_vals_filter = N_l > min_diags
+            # bad_vals_filter[1:] = np.logical_and(bad_vals_filter[1:], N_l[:-1] - N_l[1:] != 0)
+            # bad_vals_filter = N_l[:-1] - N_l[1:] != 0
+            x_vals.append(np.arange(N_l.shape[0])[::-1])
+            # x_vals = x_vals[bad_vals_filter]
+
+            # N_l = N_l[bad_vals_filter]
+            y_vals.append(np.log(N_l))
+            # N_l = np.log(N_l)
+        x_vals = np.concatenate(x_vals)
+        y_vals = np.concatenate(y_vals)
+
+        poly = lstsqr(_lstsqr_design_matrix(x_vals), y_vals)
+        k2_list.append(poly[0])
+
+    elif method == 'avg':
+        # D_l = np.zeros((np.sum((len(s) for s in diagline_dist_slices)) - 1, ), dtype=float)
+
+        for N_l in diagline_dist_slices:
+            D_l = np.zeros((N_l.shape[0]-1,), dtype=float)
+            for i in range(N_l.shape[0] - 1):
+                li = np.log(N_l[i])
+                lip1 = np.log(N_l[i+1])
+                D_l[i] = li - lip1
+
+            # D_l = np.nan_to_num(D_l)
+            D_l = D_l[D_l == D_l]
+
+            k2_list.append(np.mean(D_l))
 
     if full_output:
-        return np.mean(D_l) / dt, np.std(D_l, ddof=1) / D_l.size
+        return [k2 / dt for k2 in k2_list]
     else:
-        return np.mean(D_l) / dt
+        return np.mean(k2_list) / dt
 
-# def ks_estimation(x: np.ndarray, dims: list, rvals=None, rmin=None, rmax=None, omit_plateau=True, lag:int=1):
-#     if isinstance(dims, int):
-#         dims = [dims]
-#     for dim in dims:
-#         ts0 = delay_coordinates(x, dim, lag)
-#         ts1 = delay_coordinates(x, dim + 1, lag)
-#
-#         corr_sum(ts0, r, norm_p=float('inf'), allow_equals=False)
-#         corr_sum(ts1, r, norm_p=float('inf'), allow_equals=False)
+
