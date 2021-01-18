@@ -276,9 +276,12 @@ def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_r
 
 
 def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_diag_number=0,
-                   min_consecutive_nonzero_values=5, take_zero_splitted_slice='first', dt=1, method='avg', rp=None,
-                   full_output=False):
+                   min_consecutive_nonzero_values=5, take_zero_splitted_slice='all', dt=1, method='avg', rp=None,
+                   full_output=False, raise_if_empty=True):
 # def approximate_k2(x: np.ndarray, r='auto', L_min=None, max_l=15, full_output=False, mrange: tuple=None, dt=1):
+    assert(take_zero_splitted_slice in {'first', 'all'})
+    assert(method in {'avg', 'fit'})
+
     try:
         from pyunicorn.timeseries import RecurrencePlot
     except ImportError:
@@ -325,8 +328,11 @@ def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_dia
                 break
 
     if len(diagline_dist_slices) == 0:
-        raise ValueError('Cannot find sufficient support to estimate K2. Please check the timeseries for NaN or inf '
-                         'values or manually provide a valid recurrence plot.')
+        if raise_if_empty:
+            raise ValueError('Cannot find sufficient support to estimate K2. Please check the timeseries for NaN or inf '
+                             'values or manually provide a valid recurrence plot.')
+        else:
+            return np.nan
 
     k2_list = []
 
@@ -354,13 +360,16 @@ def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_dia
 
         for N_l in diagline_dist_slices:
             D_l = np.zeros((N_l.shape[0]-1,), dtype=float)
+            D_l = []
             for i in range(N_l.shape[0] - 1):
-                li = np.log(N_l[i])
-                lip1 = np.log(N_l[i+1])
-                D_l[i] = li - lip1
+                if N_l[i+1] <= N_l[i]:
+                    li = np.log(N_l[i])
+                    lip1 = np.log(N_l[i+1])
+                    # D_l[i] = li - lip1
+                    D_l.append(li - lip1)
 
             # D_l = np.nan_to_num(D_l)
-            D_l = D_l[D_l == D_l]
+            # D_l = D_l[D_l == D_l]
 
             k2_list.append(np.mean(D_l))
 
