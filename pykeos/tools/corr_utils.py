@@ -124,7 +124,8 @@ def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[in
 
 
 def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_plateau=True, norm_p=2, method='lstsqr',
-                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False, log_base=10, remove_tail=True, verbose=False):
+                          hack_filter_rvals=None,  nr=20, plot=False, fig=None, show=True, full_output=False,
+                          log_base=10, remove_tail=True, verbose=False):
     """
     Estimates the correlation dimension using the Grassberger-Proccacia algorithm. The code is greatly inspired by
     nolds: https://github.com/CSchoel/nolds/blob/master/nolds/measures.py and makes use of nolds version of poly_fit
@@ -276,8 +277,8 @@ def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_r
 
 
 def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_diag_number=0,
-                   min_consecutive_nonzero_values=5, take_zero_splitted_slice='all', dt=1, method='avg', rp=None,
-                   full_output=False, raise_if_empty=True):
+                   min_consecutive_nonzero_values=5, split_nonzero_slices=True, take_zero_splitted_slice='all', dt=1, method='avg', rp=None,
+                   full_output=False, raise_if_empty=True, ordering=True):
 # def approximate_k2(x: np.ndarray, r='auto', L_min=None, max_l=15, full_output=False, mrange: tuple=None, dt=1):
     assert(take_zero_splitted_slice in {'first', 'all'})
     assert(method in {'avg', 'fit'})
@@ -299,6 +300,8 @@ def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_dia
 
     if L_max is None:
         L_max = rp.max_diaglength()
+    else:
+        L_max = min(L_max, rp.max_diaglength())
 
     if L_min is not None:
         if isinstance(L_min, str):
@@ -315,17 +318,23 @@ def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_dia
     diagline_dist = rp.diagline_dist()[L_min:L_max]
     diagline_dist_slices = []
 
-    nonzero_diagline_idx = [[i for i,value in it]
-                            for key,it in itertools.groupby(enumerate(diagline_dist > min_diag_number), key=operator.itemgetter(1))
-                            if key != 0]
-    if take_zero_splitted_slice == 'all':
-        diagline_dist_slices = [diagline_dist[s] for s in nonzero_diagline_idx
-                                if len(s) > min_consecutive_nonzero_values]
-    elif take_zero_splitted_slice == "first":
-        for s in nonzero_diagline_idx:
-            if len(s) > min_consecutive_nonzero_values:
-                diagline_dist_slices = [diagline_dist[s]]
-                break
+    if split_nonzero_slices:
+        nonzero_diagline_idx = [[i for i,value in it]
+                                for key,it in itertools.groupby(enumerate(diagline_dist > min_diag_number), key=operator.itemgetter(1))
+                                if key != 0]
+        if take_zero_splitted_slice == 'all':
+            diagline_dist_slices = [diagline_dist[s] for s in nonzero_diagline_idx
+                                    if len(s) > min_consecutive_nonzero_values]
+        elif take_zero_splitted_slice == "first":
+            for s in nonzero_diagline_idx:
+                if len(s) > min_consecutive_nonzero_values:
+                    diagline_dist_slices = [diagline_dist[s]]
+                    break
+
+    else:
+        diagline_dist_slices = [diagline_dist]
+
+
 
     if len(diagline_dist_slices) == 0:
         if raise_if_empty:
@@ -359,15 +368,20 @@ def approximate_k2(x: np.ndarray=None, r='auto', L_min=None, L_max=None, min_dia
         # D_l = np.zeros((np.sum((len(s) for s in diagline_dist_slices)) - 1, ), dtype=float)
 
         for N_l in diagline_dist_slices:
-            D_l = np.zeros((N_l.shape[0]-1,), dtype=float)
+            # D_l = np.zeros((N_l.shape[0]-1,), dtype=float)
             D_l = []
             for i in range(N_l.shape[0] - 1):
-                if N_l[i+1] <= N_l[i]:
-                    li = np.log(N_l[i])
-                    lip1 = np.log(N_l[i+1])
-                    # D_l[i] = li - lip1
-                    D_l.append(li - lip1)
+                if N_l[i + 1] != 0 and N_l[i] != 0:
+                    if ordering:
+                        # li = np.log(N_l[i])
+                        # lip1 = np.log(N_l[i+1])
 
+                        # D_l[i] = li - lip1
+                        # D_l.append(li - lip1)
+                        if  N_l[i+1] <= N_l[i]:
+                            D_l.append(np.log(N_l[i] / N_l[i+1]))
+                    else:
+                        D_l.append(np.log(N_l[i] / N_l[i+1]))
             # D_l = np.nan_to_num(D_l)
             # D_l = D_l[D_l == D_l]
 
