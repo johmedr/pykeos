@@ -10,7 +10,7 @@ import plotly.graph_objs as go
 
 
 def _fast_count_row_1d(x, traj, r, norm_p):
-    return np.count_nonzero(traj - x[np.newaxis, :] <= r)
+    return np.count_nonzero(np.linalg.norm(traj - x[np.newaxis, :], ord=norm_p, axis=1) <= r)
 
 
 def _fast_count_row(x, traj, r, norm_p):
@@ -34,7 +34,7 @@ def _fast_count_traj(x, r, norm_p):
     elif x.shape[1] == 1:
         return np.sum(np.apply_along_axis(_fast_count_row_1d, 1, x, x, r, norm_p))
 
-
+ # 0.9048829582958295
 def corr_sum(traj, r, norm_p=1, allow_equals=False):
     if allow_equals:
         return _fast_count_traj(traj, r, norm_p).astype(np.float64) / traj.shape[0] ** 2
