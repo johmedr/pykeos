@@ -1,3 +1,14 @@
 .idea
 **/*.egg-info
 **/__pycache__
+**/examples/data*
+**/examples/logs
+**/examples/images
+**/.ipynb_checkpoints
+dist
+build
+**/*.npy
+**/*.pdf
+**/*.svg
+**/*.pkl
+**/*.log

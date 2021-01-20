@@ -1,0 +1,1173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>pykeos.systems.BaseSys API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pykeos.systems.BaseSys</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from abc import ABC, abstractmethod
+from typing import Union, Dict, Callable, Optional
+from numbers import Number
+from scipy.integrate import odeint
+
+import plotly.graph_objs as go
+import numpy as np
+import warnings
+
+
+class AbstractBaseSys(ABC):
+    &#34;&#34;&#34; Abstract class representing common attributes of pykeos systems.
+
+    This class is not supposed to be instancied but is a common template for
+    pykeos systems. Defines common functions that are usually applicable to
+    either formally-defined discrete or continuous (sampled) systems, as well
+    as to unformally-defined (wrapped) systems.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the system
+    map_func : Callable
+        A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+    init_func : Callable, optional
+        The initialization function that must be called to get a random initial point to the system. Will set the
+        attribute rand_init.
+    n_points : int, optional
+        The number of points.
+
+    Attributes
+    ----------
+    dim : int
+        The dimension of the system.
+    n_points : int
+        The number of points.
+    states : np.ndarray
+        An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+        (if defined) from an initial_state (returned by rand_init()) for a duration of n_points.
+    time_vec : Optional[np.ndarray]
+        The time vector associated with the time series. Is usually None for discrete systems.
+    time_map : Callable
+        A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
+    rand_init : Optional[Callable]
+        The initialization function that must be called to get a random initial point to the system.
+    &#34;&#34;&#34;
+    def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
+                 n_points: Optional[int] = None):
+        if dim &lt; 1:
+            raise ValueError(&#34;Incorrect number of dimensions&#34;)
+
+        self.dim = dim
+        self._states = None
+        self.n_points = n_points
+        self.time_vec = None
+
+        self.rand_init = init_func if callable(init_func) else None
+        self._initial_state = None
+
+        if not callable(map_func):
+            raise ValueError()
+        self.time_map = map_func
+
+    def __str__(self) -&gt; str:
+        return self.__class__.__name__
+
+    @property
+    def states(self) -&gt; np.ndarray:
+        &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape (n_points, dim) representing a timeseries of states for the system. If the
+            serie is not defined yet, the system integrates its map function with its default parameters
+            to create a timeserie.
+        &#34;&#34;&#34;
+        if self._states is None:
+            try:
+                self.integrate()
+            except ValueError:
+                raise ValueError(&#34;Cannot integrate - call integrate manually with keyword update_states=True.&#34;)
+        return self._states
+
+    @states.setter
+    def states(self, new_states: np.ndarray):
+        &#34;&#34;&#34; Setter for the system&#39;s states.
+
+        Parameters
+        ----------
+        new_states : np.ndarray
+            A new timeseries of states of shape (new_n_points, dim).&#34;&#34;&#34;
+        assert(len(new_states.shape) in [1, 2])
+        if len(new_states.shape) == 2:
+            assert(new_states.shape[1] == self.dim)
+        self._states = new_states
+        self.n_points = new_states.shape[0]
+
+    @property
+    def initial_state(self) -&gt; Union[np.ndarray, float]:
+        &#34;&#34;&#34; Getter for the initial state.
+
+        Returns
+        -------
+        Union[np.ndarray, float]
+            An array representing an initial point for the system. Will be used to solve the Initial
+            Value Problem in the case of DiscreteSys and ContinuousSys.
+        &#34;&#34;&#34;
+        if self._initial_state is None:
+            if not callable(self.rand_init):
+                raise ValueError(&#34;Either x0 or an initialization function must be provided&#34;)
+            else:
+                self._initial_state = self.rand_init()
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, x0: Union[np.ndarray, float]):
+        &#34;&#34;&#34; Setter for the initial state.
+
+        Parameters
+        ----------
+        x0 : Union[np.ndarray, float]
+            An initial value that will be used to solve the Initial Value Problem in the case of DiscreteSys and
+            ContinuousSys.
+        &#34;&#34;&#34;
+        self._initial_state = x0
+
+    @abstractmethod
+    def integrate(self, *args, **kwargs) -&gt; np.ndarray:
+        &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
+
+        This method is intended to do the all of the necessary integration work for typical types of systems.
+        
+        See also
+        --------
+        DiscreteSys.integrate
+        ContinuousSys.integrate
+
+        &#34;&#34;&#34;
+        pass
+
+
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+             fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
+        &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+
+        Parameters
+        ----------
+        show : bool
+            Whether to show the figure or just return it.
+        fig : Optional[go.Figure]
+            An optional figure to draw on.
+        mode : std
+            A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+        transient_index : int
+            Stop index for transients. We will omit [:transient_index].
+        fig_kwargs : Optional[Dict]
+            Kwargs to unpack to the fig.add_trace function.
+        trace_kwargs :
+            kwargs to unpack to the go.Scatter function.
+        &#34;&#34;&#34;
+        if self.dim &gt; 3:
+            raise NotImplementedError()
+
+        if fig is None:
+            fig = go.Figure()
+
+        if fig_kwargs is None:
+            fig_kwargs = {}
+
+        if transient_index is None:
+            states = self.states
+        else:
+            states = self.states[transient_index:]
+
+        if self.dim == 1:
+            fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
+                                     y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
+        elif self.dim == 2:
+            fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
+                          **fig_kwargs)
+        elif self.dim == 3:
+            fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
+                                       **trace_kwargs), **fig_kwargs)
+
+        if show:
+            fig.show()
+
+        return fig
+
+    def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
+        &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
+
+        See also
+        --------
+        pykeos.tools.ebdg_utils.delay_coordinates
+        &#34;&#34;&#34;
+        if dim is None:
+            dim = self.dim
+        from ..tools import delay_coordinates
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)
+
+
+class SysWrapper(AbstractBaseSys):
+    &#34;&#34;&#34; A convenient wrapper to easily interface external data in pykeos framework.
+
+    SysWrapper aims at wrapping a little bit of everything. It may represent partially
+    observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+    any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper
+
+    See also
+    --------
+    pykeos.tools.conv_utils : Contains helper function to convert data from and to pykeos.
+    &#34;&#34;&#34;
+    def __init__(self, ts: np.ndarray, dim: Optional[int] = None, n_points: Optional[int] = None,
+                 time_vec: Optional[np.ndarray] = None, t_min: Optional[Number] = None, t_max: Optional[Number] = None):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        ts : np.ndarray
+            The
+        :param ts:
+        :param dim:
+        :param n_points:
+        :param time_vec:
+        :param t_min:
+        :param t_max:
+        &#34;&#34;&#34;
+        if dim is None: 
+            dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
+        if n_points is None: 
+            n_points = ts.shape[0]
+        if time_vec is None: 
+            if t_min is None: 
+                t_min = 0
+            if t_max is None: 
+                t_max = n_points
+            time_vec = np.linspace(t_min, t_max, n_points)
+
+        super(SysWrapper, self).__init__(
+            dim=dim,
+            map_func=lambda x: warnings.warn(&#34;The map function of a &lt;SysWrapper&gt; is not supposed to be called.&#34;),
+            n_points=n_points
+        )
+
+        self.dim = dim
+        self.n_points = n_points
+        self.time_vec = time_vec
+        self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
+        self._initial_state = self._states[0]
+
+    def integrate(self, *args, **kwargs):
+        raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)
+
+    
+class DiscreteSys(AbstractBaseSys):
+    def integrate(self, n_points=None, x0=None, update_states=True):
+        if x0 is not None:
+            self.initial_state = x0
+
+        if n_points is None:
+            if self.n_points is None:
+                raise ValueError(&#34;n_points must be provided&#34;)
+            else:
+                n_points = self.n_points
+
+        states = [self.initial_state]
+
+        for i in range(n_points - 1):
+            states.append(self.time_map(states[i]))
+
+        states = np.asarray(states)
+        if update_states:
+            self.states = states
+            self.n_points = n_points
+            return self
+
+        else:
+            return states
+
+
+class ContinuousSys(AbstractBaseSys):
+    def __init__(self, dim: int, map_func, init_func=None, n_points=None, t_min=None, t_max=None):
+        super().__init__(dim, map_func, init_func, n_points=n_points)
+
+        if None not in [n_points, t_min, t_max]:
+            self.time_vec = np.linspace(t_min, t_max, n_points)
+        else:
+            self.time_vec = None
+
+    def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+        &#34;&#34;&#34; Solves an initial value problem with odeint.
+        
+        See Also
+        --------
+        DiscreteSys.integrate
+        &#34;&#34;&#34;
+        if x0 is not None:
+            self.initial_state = x0
+
+        if time_vec is None:
+            if self.time_vec is None:
+                raise ValueError(&#34;time_vec must be provided&#34;)
+            else:
+                time_vec = self.time_vec
+
+        states = odeint(self.time_map, self.initial_state, time_vec, **odeint_kwargs)
+
+        if update_states:
+            self.states = states
+            self.time_vec = time_vec
+            return self
+
+        else:
+            return states</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys"><code class="flex name class">
+<span>class <span class="ident">AbstractBaseSys</span></span>
+<span>(</span><span>dim: int, map_func: Callable, init_func: Union[Callable, NoneType] = None, n_points: Union[int, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class representing common attributes of pykeos systems.</p>
+<p>This class is not supposed to be instancied but is a common template for
+pykeos systems. Defines common functions that are usually applicable to
+either formally-defined discrete or continuous (sampled) systems, as well
+as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of points.</dd>
+<dt><strong><code>states</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+(if defined) from an initial_state (returned by rand_init()) for a duration of n_points.</dd>
+<dt><strong><code>time_vec</code></strong> :&ensp;<code>Optional[np.ndarray]</code></dt>
+<dd>The time vector associated with the time series. Is usually None for discrete systems.</dd>
+<dt><strong><code>time_map</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
+<dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
+<dd>The initialization function that must be called to get a random initial point to the system.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AbstractBaseSys(ABC):
+    &#34;&#34;&#34; Abstract class representing common attributes of pykeos systems.
+
+    This class is not supposed to be instancied but is a common template for
+    pykeos systems. Defines common functions that are usually applicable to
+    either formally-defined discrete or continuous (sampled) systems, as well
+    as to unformally-defined (wrapped) systems.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the system
+    map_func : Callable
+        A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.
+    init_func : Callable, optional
+        The initialization function that must be called to get a random initial point to the system. Will set the
+        attribute rand_init.
+    n_points : int, optional
+        The number of points.
+
+    Attributes
+    ----------
+    dim : int
+        The dimension of the system.
+    n_points : int
+        The number of points.
+    states : np.ndarray
+        An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+        (if defined) from an initial_state (returned by rand_init()) for a duration of n_points.
+    time_vec : Optional[np.ndarray]
+        The time vector associated with the time series. Is usually None for discrete systems.
+    time_map : Callable
+        A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.
+    rand_init : Optional[Callable]
+        The initialization function that must be called to get a random initial point to the system.
+    &#34;&#34;&#34;
+    def __init__(self, dim: int, map_func: Callable, init_func: Optional[Callable] = None,
+                 n_points: Optional[int] = None):
+        if dim &lt; 1:
+            raise ValueError(&#34;Incorrect number of dimensions&#34;)
+
+        self.dim = dim
+        self._states = None
+        self.n_points = n_points
+        self.time_vec = None
+
+        self.rand_init = init_func if callable(init_func) else None
+        self._initial_state = None
+
+        if not callable(map_func):
+            raise ValueError()
+        self.time_map = map_func
+
+    def __str__(self) -&gt; str:
+        return self.__class__.__name__
+
+    @property
+    def states(self) -&gt; np.ndarray:
+        &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape (n_points, dim) representing a timeseries of states for the system. If the
+            serie is not defined yet, the system integrates its map function with its default parameters
+            to create a timeserie.
+        &#34;&#34;&#34;
+        if self._states is None:
+            try:
+                self.integrate()
+            except ValueError:
+                raise ValueError(&#34;Cannot integrate - call integrate manually with keyword update_states=True.&#34;)
+        return self._states
+
+    @states.setter
+    def states(self, new_states: np.ndarray):
+        &#34;&#34;&#34; Setter for the system&#39;s states.
+
+        Parameters
+        ----------
+        new_states : np.ndarray
+            A new timeseries of states of shape (new_n_points, dim).&#34;&#34;&#34;
+        assert(len(new_states.shape) in [1, 2])
+        if len(new_states.shape) == 2:
+            assert(new_states.shape[1] == self.dim)
+        self._states = new_states
+        self.n_points = new_states.shape[0]
+
+    @property
+    def initial_state(self) -&gt; Union[np.ndarray, float]:
+        &#34;&#34;&#34; Getter for the initial state.
+
+        Returns
+        -------
+        Union[np.ndarray, float]
+            An array representing an initial point for the system. Will be used to solve the Initial
+            Value Problem in the case of DiscreteSys and ContinuousSys.
+        &#34;&#34;&#34;
+        if self._initial_state is None:
+            if not callable(self.rand_init):
+                raise ValueError(&#34;Either x0 or an initialization function must be provided&#34;)
+            else:
+                self._initial_state = self.rand_init()
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, x0: Union[np.ndarray, float]):
+        &#34;&#34;&#34; Setter for the initial state.
+
+        Parameters
+        ----------
+        x0 : Union[np.ndarray, float]
+            An initial value that will be used to solve the Initial Value Problem in the case of DiscreteSys and
+            ContinuousSys.
+        &#34;&#34;&#34;
+        self._initial_state = x0
+
+    @abstractmethod
+    def integrate(self, *args, **kwargs) -&gt; np.ndarray:
+        &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
+
+        This method is intended to do the all of the necessary integration work for typical types of systems.
+        
+        See also
+        --------
+        DiscreteSys.integrate
+        ContinuousSys.integrate
+
+        &#34;&#34;&#34;
+        pass
+
+
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+             fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
+        &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+
+        Parameters
+        ----------
+        show : bool
+            Whether to show the figure or just return it.
+        fig : Optional[go.Figure]
+            An optional figure to draw on.
+        mode : std
+            A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+        transient_index : int
+            Stop index for transients. We will omit [:transient_index].
+        fig_kwargs : Optional[Dict]
+            Kwargs to unpack to the fig.add_trace function.
+        trace_kwargs :
+            kwargs to unpack to the go.Scatter function.
+        &#34;&#34;&#34;
+        if self.dim &gt; 3:
+            raise NotImplementedError()
+
+        if fig is None:
+            fig = go.Figure()
+
+        if fig_kwargs is None:
+            fig_kwargs = {}
+
+        if transient_index is None:
+            states = self.states
+        else:
+            states = self.states[transient_index:]
+
+        if self.dim == 1:
+            fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
+                                     y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
+        elif self.dim == 2:
+            fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
+                          **fig_kwargs)
+        elif self.dim == 3:
+            fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
+                                       **trace_kwargs), **fig_kwargs)
+
+        if show:
+            fig.show()
+
+        return fig
+
+    def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
+        &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
+
+        See also
+        --------
+        pykeos.tools.ebdg_utils.delay_coordinates
+        &#34;&#34;&#34;
+        if dim is None:
+            dim = self.dim
+        from ..tools import delay_coordinates
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.BaseSys.ContinuousSys" href="#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></li>
+<li><a title="pykeos.systems.BaseSys.DiscreteSys" href="#pykeos.systems.BaseSys.DiscreteSys">DiscreteSys</a></li>
+<li><a title="pykeos.systems.BaseSys.SysWrapper" href="#pykeos.systems.BaseSys.SysWrapper">SysWrapper</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.initial_state"><code class="name">var <span class="ident">initial_state</span> : Union[numpy.ndarray, float]</code></dt>
+<dd>
+<div class="desc"><p>Getter for the initial state.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Union[np.ndarray, float]</code></dt>
+<dd>An array representing an initial point for the system. Will be used to solve the Initial
+Value Problem in the case of DiscreteSys and ContinuousSys.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def initial_state(self) -&gt; Union[np.ndarray, float]:
+    &#34;&#34;&#34; Getter for the initial state.
+
+    Returns
+    -------
+    Union[np.ndarray, float]
+        An array representing an initial point for the system. Will be used to solve the Initial
+        Value Problem in the case of DiscreteSys and ContinuousSys.
+    &#34;&#34;&#34;
+    if self._initial_state is None:
+        if not callable(self.rand_init):
+            raise ValueError(&#34;Either x0 or an initialization function must be provided&#34;)
+        else:
+            self._initial_state = self.rand_init()
+    return self._initial_state</code></pre>
+</details>
+</dd>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.states"><code class="name">var <span class="ident">states</span> : numpy.ndarray</code></dt>
+<dd>
+<div class="desc"><p>Getter for the states timeseries of the system, calls integrate if the states are not yet defined.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.ndarray</code></dt>
+<dd>An array of shape (n_points, dim) representing a timeseries of states for the system. If the
+serie is not defined yet, the system integrates its map function with its default parameters
+to create a timeserie.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def states(self) -&gt; np.ndarray:
+    &#34;&#34;&#34; Getter for the states timeseries of the system, calls integrate if the states are not yet defined.
+
+    Returns
+    -------
+    np.ndarray
+        An array of shape (n_points, dim) representing a timeseries of states for the system. If the
+        serie is not defined yet, the system integrates its map function with its default parameters
+        to create a timeserie.
+    &#34;&#34;&#34;
+    if self._states is None:
+        try:
+            self.integrate()
+        except ValueError:
+            raise ValueError(&#34;Cannot integrate - call integrate manually with keyword update_states=True.&#34;)
+    return self._states</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates"><code class="name flex">
+<span>def <span class="ident">delay_coordinates</span></span>(<span>self, dim: Union[int, NoneType] = None, lag: Union[int, str] = 'auto', axis: int = 0, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A convenient wrapper around pykeos delay_coordinates function.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="pykeos.tools.ebdg_utils.delay_coordinates" href="../tools/ebdg_utils.html#pykeos.tools.ebdg_utils.delay_coordinates">delay_coordinates()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
+    &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
+
+    See also
+    --------
+    pykeos.tools.ebdg_utils.delay_coordinates
+    &#34;&#34;&#34;
+    if dim is None:
+        dim = self.dim
+    from ..tools import delay_coordinates
+    return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.integrate"><code class="name flex">
+<span>def <span class="ident">integrate</span></span>(<span>self, *args, **kwargs) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The integration scheme to use in the case of formally-defined systems.</p>
+<p>This method is intended to do the all of the necessary integration work for typical types of systems.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="pykeos.systems.BaseSys.DiscreteSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">DiscreteSys.integrate()</a></code>
+<code><a title="pykeos.systems.BaseSys.ContinuousSys.integrate" href="#pykeos.systems.BaseSys.ContinuousSys.integrate">ContinuousSys.integrate()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def integrate(self, *args, **kwargs) -&gt; np.ndarray:
+    &#34;&#34;&#34; The integration scheme to use in the case of formally-defined systems.
+
+    This method is intended to do the all of the necessary integration work for typical types of systems.
+    
+    See also
+    --------
+    DiscreteSys.integrate
+    ContinuousSys.integrate
+
+    &#34;&#34;&#34;
+    pass</code></pre>
+</details>
+</dd>
+<dt id="pykeos.systems.BaseSys.AbstractBaseSys.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>self, show: bool = True, fig: Union[plotly.graph_objs._figure.Figure, NoneType] = None, transient_index: int = 0, mode: str = 'lines', fig_kwargs: Union[Dict, NoneType] = None, **trace_kwargs) ‑> plotly.graph_objs._figure.Figure</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>show</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to show the figure or just return it.</dd>
+<dt><strong><code>fig</code></strong> :&ensp;<code>Optional[go.Figure]</code></dt>
+<dd>An optional figure to draw on.</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>std</code></dt>
+<dd>A scatterplot mode compatible with plotly (e.g. 'lines', 'markers', 'lines+markers')</dd>
+<dt><strong><code>transient_index</code></strong> :&ensp;<code>int</code></dt>
+<dd>Stop index for transients. We will omit [:transient_index].</dd>
+<dt><strong><code>fig_kwargs</code></strong> :&ensp;<code>Optional[Dict]</code></dt>
+<dd>Kwargs to unpack to the fig.add_trace function.</dd>
+</dl>
+<p>trace_kwargs :
+kwargs to unpack to the go.Scatter function.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+         fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
+    &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
+
+    Parameters
+    ----------
+    show : bool
+        Whether to show the figure or just return it.
+    fig : Optional[go.Figure]
+        An optional figure to draw on.
+    mode : std
+        A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+    transient_index : int
+        Stop index for transients. We will omit [:transient_index].
+    fig_kwargs : Optional[Dict]
+        Kwargs to unpack to the fig.add_trace function.
+    trace_kwargs :
+        kwargs to unpack to the go.Scatter function.
+    &#34;&#34;&#34;
+    if self.dim &gt; 3:
+        raise NotImplementedError()
+
+    if fig is None:
+        fig = go.Figure()
+
+    if fig_kwargs is None:
+        fig_kwargs = {}
+
+    if transient_index is None:
+        states = self.states
+    else:
+        states = self.states[transient_index:]
+
+    if self.dim == 1:
+        fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
+                                 y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
+    elif self.dim == 2:
+        fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
+                      **fig_kwargs)
+    elif self.dim == 3:
+        fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
+                                   **trace_kwargs), **fig_kwargs)
+
+    if show:
+        fig.show()
+
+    return fig</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pykeos.systems.BaseSys.ContinuousSys"><code class="flex name class">
+<span>class <span class="ident">ContinuousSys</span></span>
+<span>(</span><span>dim: int, map_func, init_func=None, n_points=None, t_min=None, t_max=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class representing common attributes of pykeos systems.</p>
+<p>This class is not supposed to be instancied but is a common template for
+pykeos systems. Defines common functions that are usually applicable to
+either formally-defined discrete or continuous (sampled) systems, as well
+as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of points.</dd>
+<dt><strong><code>states</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+(if defined) from an initial_state (returned by rand_init()) for a duration of n_points.</dd>
+<dt><strong><code>time_vec</code></strong> :&ensp;<code>Optional[np.ndarray]</code></dt>
+<dd>The time vector associated with the time series. Is usually None for discrete systems.</dd>
+<dt><strong><code>time_map</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
+<dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
+<dd>The initialization function that must be called to get a random initial point to the system.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContinuousSys(AbstractBaseSys):
+    def __init__(self, dim: int, map_func, init_func=None, n_points=None, t_min=None, t_max=None):
+        super().__init__(dim, map_func, init_func, n_points=n_points)
+
+        if None not in [n_points, t_min, t_max]:
+            self.time_vec = np.linspace(t_min, t_max, n_points)
+        else:
+            self.time_vec = None
+
+    def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+        &#34;&#34;&#34; Solves an initial value problem with odeint.
+        
+        See Also
+        --------
+        DiscreteSys.integrate
+        &#34;&#34;&#34;
+        if x0 is not None:
+            self.initial_state = x0
+
+        if time_vec is None:
+            if self.time_vec is None:
+                raise ValueError(&#34;time_vec must be provided&#34;)
+            else:
+                time_vec = self.time_vec
+
+        states = odeint(self.time_map, self.initial_state, time_vec, **odeint_kwargs)
+
+        if update_states:
+            self.states = states
+            self.time_vec = time_vec
+            return self
+
+        else:
+            return states</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.HindmarshRose.HindmarshRose" href="HindmarshRose.html#pykeos.systems.HindmarshRose.HindmarshRose">HindmarshRose</a></li>
+<li><a title="pykeos.systems.Lorenz.Lorenz" href="Lorenz.html#pykeos.systems.Lorenz.Lorenz">Lorenz</a></li>
+<li><a title="pykeos.systems.Rossler.Rossler" href="Rossler.html#pykeos.systems.Rossler.Rossler">Rossler</a></li>
+<li><a title="pykeos.systems.Ueda.Ueda" href="Ueda.html#pykeos.systems.Ueda.Ueda">Ueda</a></li>
+<li><a title="pykeos.systems.VanDerPol.VanDerPol" href="VanDerPol.html#pykeos.systems.VanDerPol.VanDerPol">VanDerPol</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pykeos.systems.BaseSys.ContinuousSys.integrate"><code class="name flex">
+<span>def <span class="ident">integrate</span></span>(<span>self, time_vec=None, x0=None, update_states=True, **odeint_kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Solves an initial value problem with odeint.</p>
+<h2 id="see-also">See Also</h2>
+<p><code><a title="pykeos.systems.BaseSys.DiscreteSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">DiscreteSys.integrate()</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def integrate(self, time_vec=None, x0=None, update_states=True, **odeint_kwargs):
+    &#34;&#34;&#34; Solves an initial value problem with odeint.
+    
+    See Also
+    --------
+    DiscreteSys.integrate
+    &#34;&#34;&#34;
+    if x0 is not None:
+        self.initial_state = x0
+
+    if time_vec is None:
+        if self.time_vec is None:
+            raise ValueError(&#34;time_vec must be provided&#34;)
+        else:
+            time_vec = self.time_vec
+
+    states = odeint(self.time_map, self.initial_state, time_vec, **odeint_kwargs)
+
+    if update_states:
+        self.states = states
+        self.time_vec = time_vec
+        return self
+
+    else:
+        return states</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="pykeos.systems.BaseSys.DiscreteSys"><code class="flex name class">
+<span>class <span class="ident">DiscreteSys</span></span>
+<span>(</span><span>dim: int, map_func: Callable, init_func: Union[Callable, NoneType] = None, n_points: Union[int, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract class representing common attributes of pykeos systems.</p>
+<p>This class is not supposed to be instancied but is a common template for
+pykeos systems. Defines common functions that are usually applicable to
+either formally-defined discrete or continuous (sampled) systems, as well
+as to unformally-defined (wrapped) systems.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system</dd>
+<dt><strong><code>map_func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. Will set the attribute time_map.</dd>
+<dt><strong><code>init_func</code></strong> :&ensp;<code>Callable</code>, optional</dt>
+<dd>The initialization function that must be called to get a random initial point to the system. Will set the
+attribute rand_init.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of points.</dd>
+</dl>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dim</code></strong> :&ensp;<code>int</code></dt>
+<dd>The dimension of the system.</dd>
+<dt><strong><code>n_points</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of points.</dd>
+<dt><strong><code>states</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>An array of shape (n_points, dim) by convention. The first time states is called, it will integrate the time_map
+(if defined) from an initial_state (returned by rand_init()) for a duration of n_points.</dd>
+<dt><strong><code>time_vec</code></strong> :&ensp;<code>Optional[np.ndarray]</code></dt>
+<dd>The time vector associated with the time series. Is usually None for discrete systems.</dd>
+<dt><strong><code>time_map</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>A callable map that will be integrated with the defined integration scheme. See DiscreteSys and ContinuousSys.</dd>
+<dt><strong><code>rand_init</code></strong> :&ensp;<code>Optional[Callable]</code></dt>
+<dd>The initialization function that must be called to get a random initial point to the system.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiscreteSys(AbstractBaseSys):
+    def integrate(self, n_points=None, x0=None, update_states=True):
+        if x0 is not None:
+            self.initial_state = x0
+
+        if n_points is None:
+            if self.n_points is None:
+                raise ValueError(&#34;n_points must be provided&#34;)
+            else:
+                n_points = self.n_points
+
+        states = [self.initial_state]
+
+        for i in range(n_points - 1):
+            states.append(self.time_map(states[i]))
+
+        states = np.asarray(states)
+        if update_states:
+            self.states = states
+            self.n_points = n_points
+            return self
+
+        else:
+            return states</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.HenonMap.HenonMap" href="HenonMap.html#pykeos.systems.HenonMap.HenonMap">HenonMap</a></li>
+<li><a title="pykeos.systems.LogisticMap.LogisticMap" href="LogisticMap.html#pykeos.systems.LogisticMap.LogisticMap">LogisticMap</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="pykeos.systems.BaseSys.SysWrapper"><code class="flex name class">
+<span>class <span class="ident">SysWrapper</span></span>
+<span>(</span><span>ts: numpy.ndarray, dim: Union[int, NoneType] = None, n_points: Union[int, NoneType] = None, time_vec: Union[numpy.ndarray, NoneType] = None, t_min: Union[numbers.Number, NoneType] = None, t_max: Union[numbers.Number, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A convenient wrapper to easily interface external data in pykeos framework.</p>
+<p>SysWrapper aims at wrapping a little bit of everything. It may represent partially
+observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper</p>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code><a title="pykeos.tools.conv_utils" href="../tools/conv_utils.html">pykeos.tools.conv_utils</a></code></dt>
+<dd>Contains helper function to convert data from and to pykeos.</dd>
+</dl>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ts</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The</dd>
+</dl>
+<p>:param ts:
+:param dim:
+:param n_points:
+:param time_vec:
+:param t_min:
+:param t_max:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SysWrapper(AbstractBaseSys):
+    &#34;&#34;&#34; A convenient wrapper to easily interface external data in pykeos framework.
+
+    SysWrapper aims at wrapping a little bit of everything. It may represent partially
+    observed systems, delay coordinates systems as well as real data from sensors. The usage is straightforward :
+    any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pykeos system using SysWrapper
+
+    See also
+    --------
+    pykeos.tools.conv_utils : Contains helper function to convert data from and to pykeos.
+    &#34;&#34;&#34;
+    def __init__(self, ts: np.ndarray, dim: Optional[int] = None, n_points: Optional[int] = None,
+                 time_vec: Optional[np.ndarray] = None, t_min: Optional[Number] = None, t_max: Optional[Number] = None):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        ts : np.ndarray
+            The
+        :param ts:
+        :param dim:
+        :param n_points:
+        :param time_vec:
+        :param t_min:
+        :param t_max:
+        &#34;&#34;&#34;
+        if dim is None: 
+            dim = ts.shape[1] if len(ts.shape) &gt; 1 else 1
+        if n_points is None: 
+            n_points = ts.shape[0]
+        if time_vec is None: 
+            if t_min is None: 
+                t_min = 0
+            if t_max is None: 
+                t_max = n_points
+            time_vec = np.linspace(t_min, t_max, n_points)
+
+        super(SysWrapper, self).__init__(
+            dim=dim,
+            map_func=lambda x: warnings.warn(&#34;The map function of a &lt;SysWrapper&gt; is not supposed to be called.&#34;),
+            n_points=n_points
+        )
+
+        self.dim = dim
+        self.n_points = n_points
+        self.time_vec = time_vec
+        self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
+        self._initial_state = self._states[0]
+
+    def integrate(self, *args, **kwargs):
+        raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pykeos.systems" href="index.html">pykeos.systems</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pykeos.systems.BaseSys.AbstractBaseSys" href="#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a></code></h4>
+<ul class="">
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates" href="#pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates">delay_coordinates</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.initial_state" href="#pykeos.systems.BaseSys.AbstractBaseSys.initial_state">initial_state</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.integrate" href="#pykeos.systems.BaseSys.AbstractBaseSys.integrate">integrate</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.plot" href="#pykeos.systems.BaseSys.AbstractBaseSys.plot">plot</a></code></li>
+<li><code><a title="pykeos.systems.BaseSys.AbstractBaseSys.states" href="#pykeos.systems.BaseSys.AbstractBaseSys.states">states</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pykeos.systems.BaseSys.ContinuousSys" href="#pykeos.systems.BaseSys.ContinuousSys">ContinuousSys</a></code></h4>
+<ul class="">
+<li><code><a title="pykeos.systems.BaseSys.ContinuousSys.integrate" href="#pykeos.systems.BaseSys.ContinuousSys.integrate">integrate</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pykeos.systems.BaseSys.DiscreteSys" href="#pykeos.systems.BaseSys.DiscreteSys">DiscreteSys</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pykeos.systems.BaseSys.SysWrapper" href="#pykeos.systems.BaseSys.SysWrapper">SysWrapper</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
