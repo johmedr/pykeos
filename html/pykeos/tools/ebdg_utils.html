@@ -44,14 +44,17 @@ def delay_coordinates(
         return_array: bool = False,
         *args, **kwargs
     ) -&gt; Union[np.ndarray, SysWrapper]:
+    if len(ts.shape) == 1:
+        ts = ts[:, None]
+        axis = 0
 
     if lag == &#34;auto&#34;:
-        lag = select_embedding_lag(ts, *args, **kwargs)
+        lag = select_embedding_lag(ts, axis=axis, *args, **kwargs)
+    if lag * dim &gt; ts.shape[0]:
+        raise ValueError
 
-    if len(ts.shape) == 1:
-        data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
-    else:
-        data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+    data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i  in range(dim)]).T
+
 
     if return_array:
         return data
@@ -60,26 +63,43 @@ def delay_coordinates(
 
 
 def select_embedding_lag(
-        data: Union[np.ndarray, AbstractBaseSys],
-        lag_range: Union[int, tuple] = (2, 500),
-        method: str = &#34;acf&#34;,
-        criterion: float = 1/np.e,
+        data: Union[np.ndarray, AbstractBaseSys, pd.Series],
+        axis: int = 0,
+        lag_range: Union[int, tuple] = (1, 500),
+        method: str = &#34;mi&#34;,
+        criterion: Union[float, str] = &#39;firstmin&#39;,
         interactive: bool = False,
         plot: bool = False
     ) -&gt; int:
 
     assert(method in [&#39;acf&#39;, &#39;mi&#39;])
+    if isinstance(criterion, str):
+        assert(criterion == &#39;firstmin&#39;)
 
     if interactive:
         raise NotImplementedError()
 
     ts = None
-    if isinstance(data, np.ndarray):
-        ts = pd.Series(data)
-    elif isinstance(data, AbstractBaseSys):
-        from ..tools.conv_utils import to_pandas_series
-        ts = to_pandas_series(data)
+    if method == &#39;acf&#39;: # convert to pandas
+        if isinstance(data, np.ndarray):
+            ts = pd.Series(data[:,axis])
+        elif isinstance(data, AbstractBaseSys):
+            from ..tools.conv_utils import to_pandas_series
+            ts = to_pandas_series(data, axis=axis)
+        elif isinstance(data, pd.Series):
+            ts = data.copy()
+    else: # convert to np
+        if isinstance(data, np.ndarray):
+            if len(data.shape) &gt; 1:
+                data = data[:, axis]
+            ts = np.asarray(data)
+        elif isinstance(data, AbstractBaseSys):
+            ts = data.states[:, axis]
+        elif isinstance(data, pd.Series):
+            ts = data.to_numpy(copy=True)
 
+
+    lag_range = (lag_range[0], min(lag_range[1], ts.size) - 1)
     dcurve = None
     ref = None
     lag = -1
@@ -91,15 +111,23 @@ def select_embedding_lag(
         ref = lagged_mi(ts, 0)
         dcurve = [lagged_mi(ts, lag) for lag in range(*lag_range)]
 
-    for i in range(len(dcurve) - 1):
-        if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
-            lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
-            break
+    if isinstance(criterion, str):
+        _dcurve = [dcurve[i+1] - dcurve[i] for i in range(len(dcurve) - 1)]
+
+        for i in range(len(_dcurve) - 1):
+            if _dcurve[i] &lt; 0 and _dcurve[i + 1] &gt; 0:
+                lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+                break
+    else:
+        for i in range(len(dcurve) - 1):
+            if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
+                lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+                break
 
     if plot:
         fig = go.Figure()
         fig.add_trace(go.Scatter(y=dcurve, mode=&#34;lines&#34;))
-        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;)
+        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;, line_color=&#34;indianred&#34;)
         fig.show()
 
     return lag</code></pre>
@@ -129,14 +157,17 @@ def select_embedding_lag(
         return_array: bool = False,
         *args, **kwargs
     ) -&gt; Union[np.ndarray, SysWrapper]:
+    if len(ts.shape) == 1:
+        ts = ts[:, None]
+        axis = 0
 
     if lag == &#34;auto&#34;:
-        lag = select_embedding_lag(ts, *args, **kwargs)
+        lag = select_embedding_lag(ts, axis=axis, *args, **kwargs)
+    if lag * dim &gt; ts.shape[0]:
+        raise ValueError
 
-    if len(ts.shape) == 1:
-        data = np.vstack([ts[i * lag:(i - dim) * lag] for i in range(dim)]).T
-    else:
-        data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i in range(dim)]).T
+    data = np.vstack([ts[i * lag:(i - dim) * lag, axis] for i  in range(dim)]).T
+
 
     if return_array:
         return data
@@ -145,7 +176,7 @@ def select_embedding_lag(
 </details>
 </dd>
 <dt id="pykeos.tools.ebdg_utils.select_embedding_lag"><code class="name flex">
-<span>def <span class="ident">select_embedding_lag</span></span>(<span>data: Union[numpy.ndarray, <a title="pykeos.systems.BaseSys.AbstractBaseSys" href="../systems/BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a>], lag_range: Union[int, tuple] = (2, 500), method: str = 'acf', criterion: float = 0.36787944117144233, interactive: bool = False, plot: bool = False) ‑> int</span>
+<span>def <span class="ident">select_embedding_lag</span></span>(<span>data: Union[numpy.ndarray, <a title="pykeos.systems.BaseSys.AbstractBaseSys" href="../systems/BaseSys.html#pykeos.systems.BaseSys.AbstractBaseSys">AbstractBaseSys</a>, pandas.core.series.Series], axis: int = 0, lag_range: Union[int, tuple] = (1, 500), method: str = 'mi', criterion: Union[float, str] = 'firstmin', interactive: bool = False, plot: bool = False) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -154,26 +185,43 @@ def select_embedding_lag(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def select_embedding_lag(
-        data: Union[np.ndarray, AbstractBaseSys],
-        lag_range: Union[int, tuple] = (2, 500),
-        method: str = &#34;acf&#34;,
-        criterion: float = 1/np.e,
+        data: Union[np.ndarray, AbstractBaseSys, pd.Series],
+        axis: int = 0,
+        lag_range: Union[int, tuple] = (1, 500),
+        method: str = &#34;mi&#34;,
+        criterion: Union[float, str] = &#39;firstmin&#39;,
         interactive: bool = False,
         plot: bool = False
     ) -&gt; int:
 
     assert(method in [&#39;acf&#39;, &#39;mi&#39;])
+    if isinstance(criterion, str):
+        assert(criterion == &#39;firstmin&#39;)
 
     if interactive:
         raise NotImplementedError()
 
     ts = None
-    if isinstance(data, np.ndarray):
-        ts = pd.Series(data)
-    elif isinstance(data, AbstractBaseSys):
-        from ..tools.conv_utils import to_pandas_series
-        ts = to_pandas_series(data)
+    if method == &#39;acf&#39;: # convert to pandas
+        if isinstance(data, np.ndarray):
+            ts = pd.Series(data[:,axis])
+        elif isinstance(data, AbstractBaseSys):
+            from ..tools.conv_utils import to_pandas_series
+            ts = to_pandas_series(data, axis=axis)
+        elif isinstance(data, pd.Series):
+            ts = data.copy()
+    else: # convert to np
+        if isinstance(data, np.ndarray):
+            if len(data.shape) &gt; 1:
+                data = data[:, axis]
+            ts = np.asarray(data)
+        elif isinstance(data, AbstractBaseSys):
+            ts = data.states[:, axis]
+        elif isinstance(data, pd.Series):
+            ts = data.to_numpy(copy=True)
 
+
+    lag_range = (lag_range[0], min(lag_range[1], ts.size) - 1)
     dcurve = None
     ref = None
     lag = -1
@@ -185,15 +233,23 @@ def select_embedding_lag(
         ref = lagged_mi(ts, 0)
         dcurve = [lagged_mi(ts, lag) for lag in range(*lag_range)]
 
-    for i in range(len(dcurve) - 1):
-        if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
-            lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
-            break
+    if isinstance(criterion, str):
+        _dcurve = [dcurve[i+1] - dcurve[i] for i in range(len(dcurve) - 1)]
+
+        for i in range(len(_dcurve) - 1):
+            if _dcurve[i] &lt; 0 and _dcurve[i + 1] &gt; 0:
+                lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+                break
+    else:
+        for i in range(len(dcurve) - 1):
+            if dcurve[i] &gt; ref * criterion and dcurve[i + 1] &lt;= ref * criterion:
+                lag = i if abs(dcurve[i]) &lt; abs(dcurve[i + 1]) else i + 1
+                break
 
     if plot:
         fig = go.Figure()
         fig.add_trace(go.Scatter(y=dcurve, mode=&#34;lines&#34;))
-        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;)
+        fig.add_shape(x0=lag, x1=lag, y0=np.min(dcurve), y1=np.max(dcurve), type=&#34;line&#34;, line_color=&#34;indianred&#34;)
         fig.show()
 
     return lag</code></pre>

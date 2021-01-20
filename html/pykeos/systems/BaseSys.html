@@ -167,8 +167,9 @@ class AbstractBaseSys(ABC):
         &#34;&#34;&#34;
         pass
 
-    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
-             **trace_kwargs) -&gt; go.Figure:
+
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+             fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
         &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
@@ -177,6 +178,10 @@ class AbstractBaseSys(ABC):
             Whether to show the figure or just return it.
         fig : Optional[go.Figure]
             An optional figure to draw on.
+        mode : std
+            A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+        transient_index : int
+            Stop index for transients. We will omit [:transient_index].
         fig_kwargs : Optional[Dict]
             Kwargs to unpack to the fig.add_trace function.
         trace_kwargs :
@@ -191,14 +196,19 @@ class AbstractBaseSys(ABC):
         if fig_kwargs is None:
             fig_kwargs = {}
 
+        if transient_index is None:
+            states = self.states
+        else:
+            states = self.states[transient_index:]
+
         if self.dim == 1:
             fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                     y=self.states[:, 0], mode=&#39;lines&#39;, **trace_kwargs), **fig_kwargs)
+                                     y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
         elif self.dim == 2:
-            fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode=&#39;lines&#39;, **trace_kwargs),
+            fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
                           **fig_kwargs)
         elif self.dim == 3:
-            fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode=&#39;lines&#39;,
+            fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
                                        **trace_kwargs), **fig_kwargs)
 
         if show:
@@ -206,15 +216,17 @@ class AbstractBaseSys(ABC):
 
         return fig
 
-    def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+    def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
         &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
         pykeos.tools.ebdg_utils.delay_coordinates
         &#34;&#34;&#34;
+        if dim is None:
+            dim = self.dim
         from ..tools import delay_coordinates
-        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)
 
 
 class SysWrapper(AbstractBaseSys):
@@ -263,7 +275,7 @@ class SysWrapper(AbstractBaseSys):
         self.n_points = n_points
         self.time_vec = time_vec
         self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
-        self._initial_state = self._states[0, :]
+        self._initial_state = self._states[0]
 
     def integrate(self, *args, **kwargs):
         raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)
@@ -513,8 +525,9 @@ attribute rand_init.</dd>
         &#34;&#34;&#34;
         pass
 
-    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
-             **trace_kwargs) -&gt; go.Figure:
+
+    def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+             fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
         &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
         Parameters
@@ -523,6 +536,10 @@ attribute rand_init.</dd>
             Whether to show the figure or just return it.
         fig : Optional[go.Figure]
             An optional figure to draw on.
+        mode : std
+            A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+        transient_index : int
+            Stop index for transients. We will omit [:transient_index].
         fig_kwargs : Optional[Dict]
             Kwargs to unpack to the fig.add_trace function.
         trace_kwargs :
@@ -537,14 +554,19 @@ attribute rand_init.</dd>
         if fig_kwargs is None:
             fig_kwargs = {}
 
+        if transient_index is None:
+            states = self.states
+        else:
+            states = self.states[transient_index:]
+
         if self.dim == 1:
             fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                     y=self.states[:, 0], mode=&#39;lines&#39;, **trace_kwargs), **fig_kwargs)
+                                     y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
         elif self.dim == 2:
-            fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode=&#39;lines&#39;, **trace_kwargs),
+            fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
                           **fig_kwargs)
         elif self.dim == 3:
-            fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode=&#39;lines&#39;,
+            fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
                                        **trace_kwargs), **fig_kwargs)
 
         if show:
@@ -552,15 +574,17 @@ attribute rand_init.</dd>
 
         return fig
 
-    def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+    def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
         &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
         See also
         --------
         pykeos.tools.ebdg_utils.delay_coordinates
         &#34;&#34;&#34;
+        if dim is None:
+            dim = self.dim
         from ..tools import delay_coordinates
-        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
+        return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -642,7 +666,7 @@ def states(self) -&gt; np.ndarray:
 <h3>Methods</h3>
 <dl>
 <dt id="pykeos.systems.BaseSys.AbstractBaseSys.delay_coordinates"><code class="name flex">
-<span>def <span class="ident">delay_coordinates</span></span>(<span>self, dim: int, lag: int = 1, axis: int = 0) ‑> numpy.ndarray</span>
+<span>def <span class="ident">delay_coordinates</span></span>(<span>self, dim: Union[int, NoneType] = None, lag: Union[int, str] = 'auto', axis: int = 0, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A convenient wrapper around pykeos delay_coordinates function.</p>
@@ -652,15 +676,17 @@ def states(self) -&gt; np.ndarray:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def delay_coordinates(self, dim: int, lag: int = 1, axis: int = 0) -&gt; np.ndarray:
+<pre><code class="python">def delay_coordinates(self, dim: Optional[int] = None, lag: Union[int, str] = &#34;auto&#34;, axis: int = 0, *args, **kwargs):
     &#34;&#34;&#34; A convenient wrapper around pykeos delay_coordinates function.
 
     See also
     --------
     pykeos.tools.ebdg_utils.delay_coordinates
     &#34;&#34;&#34;
+    if dim is None:
+        dim = self.dim
     from ..tools import delay_coordinates
-    return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis)</code></pre>
+    return delay_coordinates(self.states, dim=dim, lag=lag, axis=axis, *args, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="pykeos.systems.BaseSys.AbstractBaseSys.integrate"><code class="name flex">
@@ -692,7 +718,7 @@ def integrate(self, *args, **kwargs) -&gt; np.ndarray:
 </details>
 </dd>
 <dt id="pykeos.systems.BaseSys.AbstractBaseSys.plot"><code class="name flex">
-<span>def <span class="ident">plot</span></span>(<span>self, show: bool = True, fig: Union[plotly.graph_objs._figure.Figure, NoneType] = None, fig_kwargs: Union[Dict, NoneType] = None, **trace_kwargs) ‑> plotly.graph_objs._figure.Figure</span>
+<span>def <span class="ident">plot</span></span>(<span>self, show: bool = True, fig: Union[plotly.graph_objs._figure.Figure, NoneType] = None, transient_index: int = 0, mode: str = 'lines', fig_kwargs: Union[Dict, NoneType] = None, **trace_kwargs) ‑> plotly.graph_objs._figure.Figure</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.</p>
@@ -702,6 +728,10 @@ def integrate(self, *args, **kwargs) -&gt; np.ndarray:
 <dd>Whether to show the figure or just return it.</dd>
 <dt><strong><code>fig</code></strong> :&ensp;<code>Optional[go.Figure]</code></dt>
 <dd>An optional figure to draw on.</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>std</code></dt>
+<dd>A scatterplot mode compatible with plotly (e.g. 'lines', 'markers', 'lines+markers')</dd>
+<dt><strong><code>transient_index</code></strong> :&ensp;<code>int</code></dt>
+<dd>Stop index for transients. We will omit [:transient_index].</dd>
 <dt><strong><code>fig_kwargs</code></strong> :&ensp;<code>Optional[Dict]</code></dt>
 <dd>Kwargs to unpack to the fig.add_trace function.</dd>
 </dl>
@@ -711,8 +741,8 @@ kwargs to unpack to the go.Scatter function.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot(self, show: bool = True, fig: Optional[go.Figure] = None, fig_kwargs: Optional[Dict] = None,
-         **trace_kwargs) -&gt; go.Figure:
+<pre><code class="python">def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = &#34;lines&#34;,
+         fig_kwargs: Optional[Dict] = None, **trace_kwargs) -&gt; go.Figure:
     &#34;&#34;&#34; Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
 
     Parameters
@@ -721,6 +751,10 @@ kwargs to unpack to the go.Scatter function.</p></div>
         Whether to show the figure or just return it.
     fig : Optional[go.Figure]
         An optional figure to draw on.
+    mode : std
+        A scatterplot mode compatible with plotly (e.g. &#39;lines&#39;, &#39;markers&#39;, &#39;lines+markers&#39;)
+    transient_index : int
+        Stop index for transients. We will omit [:transient_index].
     fig_kwargs : Optional[Dict]
         Kwargs to unpack to the fig.add_trace function.
     trace_kwargs :
@@ -735,14 +769,19 @@ kwargs to unpack to the go.Scatter function.</p></div>
     if fig_kwargs is None:
         fig_kwargs = {}
 
+    if transient_index is None:
+        states = self.states
+    else:
+        states = self.states[transient_index:]
+
     if self.dim == 1:
         fig.add_trace(go.Scatter(x=self.time_vec if self.time_vec is not None else np.arange(self.n_points),
-                                 y=self.states[:, 0], mode=&#39;lines&#39;, **trace_kwargs), **fig_kwargs)
+                                 y=states[:, 0], mode=mode, **trace_kwargs), **fig_kwargs)
     elif self.dim == 2:
-        fig.add_trace(go.Scatter(x=self.states[:, 0], y=self.states[:, 1], mode=&#39;lines&#39;, **trace_kwargs),
+        fig.add_trace(go.Scatter(x=states[:, 0], y=states[:, 1], mode=mode, **trace_kwargs),
                       **fig_kwargs)
     elif self.dim == 3:
-        fig.add_trace(go.Scatter3d(x=self.states[:, 0], y=self.states[:, 1], z=self.states[:, 2], mode=&#39;lines&#39;,
+        fig.add_trace(go.Scatter3d(x=states[:, 0], y=states[:, 1], z=states[:, 2], mode=mode,
                                    **trace_kwargs), **fig_kwargs)
 
     if show:
@@ -1061,7 +1100,7 @@ any timeseries in form of a 1- or 2-dimensional array can be wrapped into a pyke
         self.n_points = n_points
         self.time_vec = time_vec
         self._states = ts if len(ts.shape) &gt; 1 else ts[:, None]
-        self._initial_state = self._states[0, :]
+        self._initial_state = self._states[0]
 
     def integrate(self, *args, **kwargs):
         raise RuntimeError(&#34;Instance of &lt;SysWrapper&gt; is not supposed to be integrated.&#34;)</code></pre>
