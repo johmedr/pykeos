@@ -4,6 +4,7 @@
 **/examples/data*
 **/examples/logs
 **/examples/images
+**/.ipynb_checkpoints
 dist
 build
 **/*.npy
