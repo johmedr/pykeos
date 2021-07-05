@@ -139,7 +139,6 @@ class AbstractBaseSys(ABC):
         """
         pass
 
-
     def plot(self, show: bool = True, fig: Optional[go.Figure] = None, transient_index: int = 0, mode: str = "lines",
              fig_kwargs: Optional[Dict] = None, **trace_kwargs) -> go.Figure:
         """ Plots the states attribute using plotly for 1-, 2- or 3-dimensional systems.
