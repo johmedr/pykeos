@@ -95,7 +95,7 @@ def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[in
     iqr = stats.iqr(x)
     scale = min(std, iqr/1.34)
 
-    gamma_n = n ** (-1/(d+4))
+    gamma_n = n ** (-1./(d+4))
 
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
