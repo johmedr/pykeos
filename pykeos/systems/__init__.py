@@ -6,3 +6,4 @@ from .HenonMap import HenonMap
 from .Ueda import Ueda
 from .VanDerPol import VanDerPol
 from .LogisticMap import LogisticMap
+from .JansenRit import JansentRit
