@@ -1,12 +1,18 @@
 from ..tools import reference_rule, correlation_sum
 from ..tools.math_utils import _lstsqr_design_matrix
 from ..tools.conv_utils import _make_array
+from ..tools.nd_utils import nd_function, windowed_function
+
 
 import numpy as np
 
-
+@nd_function
+@windowed_function
 def correlation_dimension(x, radius=None, radius_range=(0.5, 1), use_relative_range=True,
                           n_radius=10, log_base=np.e, norm_p=float('inf'), debug_plot=False):
+
+    """ Computes the correlation dimension from a timeseries
+    """
 
     _x = _make_array(x)
 

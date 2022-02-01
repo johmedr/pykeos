@@ -73,3 +73,6 @@ def _lstsqr_design_matrix(x, degree=1):
 def lstsqr(X, y):
     Xt = np.transpose(X)
     return np.linalg.pinv(Xt.dot(X)).dot(Xt).dot(y)
+
+def sigmoid(x):
+    return 1. / (1 + np.exp(-x))

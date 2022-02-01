@@ -1,8 +1,11 @@
 from ..tools import correlation_sum, delay_coordinates, reference_rule
 from ..tools.conv_utils import _make_array
+from ..tools.nd_utils import nd_function, windowed_function
 import numpy as np
 
 
+@nd_function
+@windowed_function
 def sample_entropy(x, radius=None, dim=2, norm_p=float('inf'), axis=0):
     _x = _make_array(x)
 
