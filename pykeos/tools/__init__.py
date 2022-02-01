@@ -1,4 +1,4 @@
-from .math_utils import n_ball_volume, n_sphere_area, nd_rand_init, make_uniform_kernel, mutual_information, lagged_mi, lstsqr
+from .math_utils import n_ball_volume, n_sphere_area, nd_rand_init, make_uniform_kernel, mutual_information, lagged_mi, lstsqr, sigmoid
 
 from .ebdg_utils import select_embedding_lag, delay_coordinates
 
