@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-class JansentRit(ContinuousSys):
+class JansenRit(ContinuousSys):
     def __init__(self, A=3.25, B=22, a_inv=10, b_inv=20, C=135, Crep=[1., 0.8, 0.25, 0.25], vmax=5, v0=6, r=0.56, n_points=5000, t_min=0, t_max=30):
         self.A = A
         self.B = B
