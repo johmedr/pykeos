@@ -35,7 +35,7 @@ def _fast_count_traj(x, r, norm_p):
     elif x.shape[1] == 1:
         return np.sum(np.apply_along_axis(_fast_count_row_1d, 1, x, x, r, norm_p))
 
- # 0.9048829582958295
+
 def corr_sum(traj, r, norm_p=1, allow_equals=False):
     if allow_equals:
         return _fast_count_traj(traj, r, norm_p).astype(np.float64) / traj.shape[0] ** 2
@@ -100,6 +100,7 @@ def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[in
 
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
+
     alpha_p_d = reference_rule_alpha(norm_p, d)
     return gamma_n * alpha_p_d * scale
 
@@ -201,6 +202,7 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     else:
         return poly[0]
 
+
 def approximate_d2(x: object, r_opt: object = None, meaningfull_range: object = (0.5, 1.), n_evals: object = 10, base: object = 10.,
                    norm_p: float = float('inf'),
                    method: object = 'fit',
@@ -242,9 +244,7 @@ def approximate_d2(x: object, r_opt: object = None, meaningfull_range: object = 
             return poly[0]
 
 
-
 def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
-
     if len(x.shape) == 1:
         x = x[:, np.newaxis]
 

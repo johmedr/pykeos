@@ -78,7 +78,7 @@ class WindowedRecurrencePlot:
 		def _wrapped_func(*args, **kwargs): 
 			results = []
 			for rp in self._rps:
-				 results.append(method(rp, *args, **kwargs))
+				results.append(method(rp, *args, **kwargs))
 			results = np.asarray(results)
 			if self._is_ndim:
 				if self._has_state_dim: 

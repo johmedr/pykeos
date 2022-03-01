@@ -15,6 +15,11 @@ def autocov(x, axis=-1):
 
 
 class ParametricRQA:
+    """
+    Computes the asymptotic quantities of recurrence quantification analysis from timeseries autocorrelation, as
+    described in Ramdani, Sofiane, et al. "Parametric recurrence quantification analysis of autoregressive processes
+    for pattern recognition in multichannel electroencephalographic data." Pattern Recognition 109 (2021): 107572.
+    """
     def __init__(self, x, axis=-1, threshold=None, lmin=2, vmin=2):
         self.x = x
         self.axis = axis

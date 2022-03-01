@@ -5,7 +5,10 @@ import functools
 from ..tools.conv_utils import _make_array
 
 
-def nd_function(func): 
+def nd_function(func):
+    """
+    Wraps a function to apply over slices of an n-dimensional array, specifying mandatory "axis" keyword.
+    """
     @functools.wraps(func)
     def _wrapped_func(x, *args, **kwargs):
         if 'axis' in kwargs.keys(): 
@@ -49,7 +52,11 @@ def nd_function(func):
 
     return _wrapped_func
 
-def windowed_function(func): 
+
+def windowed_function(func):
+    """
+    Wraps a function to apply over windows, specified by mandatory keyword "window_size".
+    """
     @functools.wraps(func)
     def _wrapped_func(x, *args, **kwargs):
         if 'window_size' in kwargs.keys(): 
@@ -70,14 +77,12 @@ def windowed_function(func):
             step_size = window_size - n_overlap
             n_windows = x.shape[0] // step_size
 
-
             results = [
                 func(_x[i * step_size:min(i * step_size + window_size, x.shape[0]+1)], *args, **kwargs)
                 for i in range(n_windows)
             ]
 
             results = np.asarray(results)
-
             return results
 
         else: 

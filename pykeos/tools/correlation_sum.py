@@ -26,6 +26,7 @@ def _corr_sum_pyunicorn_backend(x: np.ndarray, r: float, norm_p: Union[float, st
         x, threshold=r, metric=_to_pyunicorm_metric(norm_p), silence_level=3
     ).recurrence_rate()
 
+
 try:
     import pyunicorn
     _corr_sum_backend = _corr_sum_pyunicorn_backend
