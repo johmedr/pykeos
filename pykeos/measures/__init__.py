@@ -1,5 +1,5 @@
 from .correlation_dimension import correlation_dimension
-from .entropies import sample_entropy
+from .entropies import sample_entropy, approximate_entropy
 from .ParametricRQA import ParametricRQA
 from .WindowedRecurrencePlot import WindowedRecurrencePlot
 from .WindowedParametricRQA import WindowedParametricRQA
