@@ -65,22 +65,18 @@ def dsty_est(x, samples, r, norm_p=1):
 
 
 def reference_rule_alpha(p: Union[float, int], d: int):
-    # if d > 1:
-    #     return (
-    #                    ((d * n_ball_volume(d, p) * (2 * np.sqrt(np.pi))**d) / (d + 2))
-    #                  * ((3 * gamma((d + 2) / p + 1))/(2 * gamma((d-1)/p + 1) * gamma(3 / p + 1)))**2
-    #            ) ** (1./(d+4))
-    # else:
-    #     return (12 * np.sqrt(np.pi)) ** (1 / 5.)
     if d == 1:
-        return 1.843
+        alpha = (12. * np.sqrt(np.pi)) ** (1./5)
+    else:
+        alpha = (
+            (4. * (2. * np.sqrt(np.pi))**d * (3. * gamma(1+(d+2.)/p) * gamma(1+1./p))**2)
+            / ((d + 2.) * n_ball_volume(d, p) * (gamma(1+3./p) * gamma(1.+d/p)) ** 2)
+        ) ** (1./(d+4))
+    return alpha
 
-    return (
-        (4* (2 * np.sqrt(np.pi))**d *(3 * gamma(1+(d+2)/p) * gamma(1+1./p))**2) / ((d + 2) * n_ball_volume(d,p) * (gamma(3/p + 1) * gamma(d/p + 1))**2)
-    )**(1/(d+4))
 
 @nd_function
-def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
+def reference_rule(x: np.ndarray, dim: Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
     n = x.shape[0]
     if dim == 'auto':
         d = 1

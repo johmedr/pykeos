@@ -27,7 +27,7 @@ def correlation_dimension(x, radius=None, radius_range=(0.5, 1), use_relative_ra
         log = lambda x: np.log(_x) / np.log(log_base)
 
     if use_relative_range:
-        absolute_range = list(b *  radius for b in radius_range)
+        absolute_range = list(b * radius for b in radius_range)
     else:
         absolute_range = list(radius_range)
     absolute_range = [log(r) for r in absolute_range]
@@ -38,8 +38,7 @@ def correlation_dimension(x, radius=None, radius_range=(0.5, 1), use_relative_ra
     radius_values = log(radius_values[corr_sums != 0])
     corr_sums = log(corr_sums[corr_sums != 0])
 
-    poly = np.linalg.lstsq(_lstsqr_design_matrix(radius_values), corr_sums, rcond=None)
-    poly = poly[0]
+    poly = np.linalg.lstsq(_lstsqr_design_matrix(radius_values), corr_sums, rcond=None)[0]
     corr_dim = poly[0]
 
     if debug_plot:
