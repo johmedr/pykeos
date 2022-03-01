@@ -1,4 +1,4 @@
-from .conv_utils import _make_array
+from .io_conversion import _make_array
 import numpy as np
 from typing import Union
 
@@ -20,7 +20,7 @@ def _corr_sum_numpy_backend(x: np.ndarray, r: float, norm_p: float) -> float:
 
 def _corr_sum_pyunicorn_backend(x: np.ndarray, r: float, norm_p: Union[float, str]) -> float:
     import pyunicorn.timeseries as puts
-    from .conv_utils import _to_pyunicorm_metric
+    from .io_conversion import _to_pyunicorm_metric
 
     return puts.RecurrencePlot(
         x, threshold=r, metric=_to_pyunicorm_metric(norm_p), silence_level=3

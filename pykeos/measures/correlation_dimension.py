@@ -1,6 +1,6 @@
 from ..tools import reference_rule, correlation_sum
 from ..tools.math_utils import _lstsqr_design_matrix
-from ..tools.conv_utils import _make_array
+from ..tools.io_conversion import _make_array
 from ..tools.nd_utils import nd_function, windowed_function
 
 import numpy as np

@@ -1,5 +1,5 @@
 from pyunicorn.timeseries import RecurrencePlot
-from ..tools.conv_utils import _make_array, _from_pyunicorn_metric
+from ..tools.io_conversion import _make_array, _from_pyunicorn_metric
 from ..tools.corr_utils import reference_rule
 from tqdm import tqdm
 import numpy as np

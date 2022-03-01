@@ -2,7 +2,7 @@ import joblib
 import numpy as np
 import functools
 
-from ..tools.conv_utils import _make_array
+from ..tools.io_conversion import _make_array
 
 
 def nd_function(func):
