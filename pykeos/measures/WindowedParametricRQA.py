@@ -91,7 +91,7 @@ class WindowedParametricRQA:
                 else:
                     results = results.reshape((*self._unrelated_shape, -1))
                     results = np.swapaxes(results, -1, self._time_axis)
-                    
+
             return results
 
         setattr(self, method.__name__, _wrapped_func)
