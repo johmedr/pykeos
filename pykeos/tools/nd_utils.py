@@ -45,7 +45,7 @@ def nd_function(func):
             return results
 
         else: 
-            return func(_x, *args, **kwargs)
+            return func(x, *args, **kwargs)
 
     return _wrapped_func
 
@@ -68,7 +68,7 @@ def windowed_function(func):
             _x = _make_array(x)
 
             step_size = window_size - n_overlap
-            n_windows = int(np.ceil(x.shape[0] / step_size))
+            n_windows = x.shape[0] // step_size
 
 
             results = [
@@ -81,6 +81,6 @@ def windowed_function(func):
             return results
 
         else: 
-            return func(_x, *args, **kwargs)
+            return func(x, *args, **kwargs)
 
     return _wrapped_func

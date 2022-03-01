@@ -1,5 +1,6 @@
 import numpy as np
 from ..tools import n_ball_volume, n_sphere_area, delay_coordinates, lstsqr
+from ..tools.nd_utils import nd_function
 from .math_utils import _lstsqr_design_matrix
 from scipy.special import gamma
 from nolds.measures import poly_fit
@@ -78,7 +79,7 @@ def reference_rule_alpha(p: Union[float, int], d: int):
         (4* (2 * np.sqrt(np.pi))**d *(3 * gamma(1+(d+2)/p) * gamma(1+1./p))**2) / ((d + 2) * n_ball_volume(d,p) * (gamma(3/p + 1) * gamma(d/p + 1))**2)
     )**(1/(d+4))
 
-
+@nd_function
 def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
     n = x.shape[0]
     if dim == 'auto':
