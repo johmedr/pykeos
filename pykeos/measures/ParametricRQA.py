@@ -52,7 +52,10 @@ class ParametricRQA:
             return self._internals['vert_probs'][k]
 
     def recurrence_rate(self):
-        return erf(self.threshold / (2 * self.x.std(ddof=1, axis=self.axis)))
+        rr = erf(self.threshold / (2 * self.x.std(ddof=1, axis=self.axis)))
+        if isinstance(rr, np.ndarray) and rr.size == 1:
+            rr = rr[0]
+        return rr
 
     def determinism(self, lmin=None):
         if lmin is None:
