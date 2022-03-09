@@ -7,10 +7,7 @@ import functools
 
 
 class WindowedRecurrencePlot:
-	def __init__(self, x, window_size, n_overlap=None, time_axis=None, state_axis=None, **kwargs): 
-		""" 
-
-		"""
+	def __init__(self, x, window_size, n_overlap=None, time_axis=None, state_axis=None, **kwargs):
 		x = _make_array(x)
 		self._time_axis = time_axis
 		self._state_axis = state_axis
@@ -26,9 +23,9 @@ class WindowedRecurrencePlot:
 			
 			if state_axis is None: 
 				self._has_state_dim = False
+				x = np.swapaxes(x, time_axis, -1)
 				x = np.expand_dims(x, -1)
-				x = np.swapaxes(x, time_axis, -2)
-			else: 
+			else:
 				self._has_state_dim = True
 				x = np.moveaxis(x, (time_axis, state_axis), (-2, -1))
 
@@ -77,7 +74,7 @@ class WindowedRecurrencePlot:
 		@functools.wraps(method)
 		def _wrapped_func(*args, **kwargs): 
 			results = []
-			for rp in self._rps:
+			for rp in tqdm(self._rps):
 				results.append(method(rp, *args, **kwargs))
 			results = np.asarray(results)
 			if self._is_ndim:

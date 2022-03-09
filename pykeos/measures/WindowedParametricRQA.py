@@ -4,16 +4,18 @@ from ..tools.corr_utils import reference_rule
 from tqdm import tqdm
 import numpy as np
 import functools
+from joblib import Parallel, delayed
 
-
+#todo select threshold per window or overall
 class WindowedParametricRQA:
-    def __init__(self, x, window_size, n_overlap=None, time_axis=None, state_axis=None, **kwargs):
+    def __init__(self, x, window_size, n_overlap=None, time_axis=None, state_axis=None, n_jobs=None, **kwargs):
         """
 
         """
         x = _make_array(x)
         self._time_axis = time_axis
         self._state_axis = state_axis
+        self._n_jobs = n_jobs
 
         self._is_ndim = False
         if len(x.shape) > 2 or (len(x.shape) == 2 and state_axis == None):
@@ -26,8 +28,8 @@ class WindowedParametricRQA:
 
             if state_axis is None:
                 self._has_state_dim = False
+                x = np.swapaxes(x, time_axis, -1)
                 x = np.expand_dims(x, -1)
-                x = np.swapaxes(x, time_axis, -2)
             else:
                 self._has_state_dim = True
                 x = np.moveaxis(x, (time_axis, state_axis), (-2, -1))
@@ -80,9 +82,13 @@ class WindowedParametricRQA:
     def _bind_rps_method(self, name, method):
         @functools.wraps(method)
         def _wrapped_func(*args, **kwargs):
-            results = []
-            for rp in self._rps:
-                results.append(method(rp, *args, **kwargs))
+            if self._n_jobs is None:
+                results = []
+                for rp in tqdm(self._rps):
+                    results.append(method(rp, *args, **kwargs))
+            else:
+                results = Parallel(self._n_jobs)(delayed(method)(rp, *args, **kwargs)
+                    for rp in self._rps)
             results = np.asarray(results)
             if self._is_ndim:
                 if self._has_state_dim:
