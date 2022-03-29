@@ -9,3 +9,4 @@ from .io_conversion import from_array, to_array, from_pandas_series, to_pandas_s
 from .corr_utils import *
 from .plot_utils import plot_rp, Scale4Latex
 from .correlation_sum import correlation_sum
+from .recurrence_plot_utils import *

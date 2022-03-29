@@ -85,6 +85,8 @@ def reference_rule(x: np.ndarray, dim: Union[int, str] = 'auto', norm_p: Union[i
 
     elif isinstance(dim, int):
         d = dim
+    else:
+        raise ValueError('dim must be "auto" or int')
 
     # print(d)
     std = np.sqrt(x.var(axis=0, ddof=1).mean())
@@ -92,7 +94,7 @@ def reference_rule(x: np.ndarray, dim: Union[int, str] = 'auto', norm_p: Union[i
     iqr = stats.iqr(x)
     scale = min(std, iqr/1.34)
 
-    gamma_n = n ** (-1/(d+4))
+    gamma_n = n ** (-1/(d+4.))
 
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
