@@ -64,10 +64,10 @@ class WindowedParametricRQA:
 
             norm_p = _from_pyunicorn_metric(kwargs.pop('metric')) if 'metric' in kwargs else _from_pyunicorn_metric(
                 'supremum')
-            radii = [reference_rule(ts, norm_p=norm_p) for ts in self._time_series]
+            # radii = [reference_rule(ts, norm_p=norm_p) for ts in self._time_series]
 
-            self._rps = [ParametricRQA(ts, threshold=rad, axis=0, **kwargs)
-                         for ts, rad in zip(tqdm(self._time_series), radii)]
+            self._rps = [ParametricRQA(ts, threshold=reference_rule(ts, norm_p=norm_p), axis=0, **kwargs)
+                         for ts in tqdm(self._time_series)]
 
         else:
             self._rps = [ParametricRQA(ts, axis=0, **kwargs)
@@ -97,6 +97,10 @@ class WindowedParametricRQA:
                 else:
                     results = results.reshape((*self._unrelated_shape, -1))
                     results = np.swapaxes(results, -1, self._time_axis)
+
+            if isinstance(results.flat[0], dict): 
+                unpack = lambda key: np.vectorize(lambda _: _[key])
+                results = {k: unpack(k)(results) for k in results.flat[0].keys()}
 
             return results
 
