@@ -27,7 +27,7 @@ from tqdm import tqdm
 def weighted_diagline_histogram(recmat, scale, order=4):
     recmat = recmat.astype(np.int8)
     n_times = recmat.shape[0]
-    diag_hist = localized_vertline_histogram(recmat)
+    diag_hist = localized_diagline_histogram(recmat)
     max_diag_length = int(max(_[2] for _ in diag_hist) + 1)
     if max_diag_length > n_times:
         raise RuntimeError(f"max_diag_length ({max_diag_length}) is greater that n_times ({n_times})")

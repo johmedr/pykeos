@@ -48,10 +48,10 @@ def _localized_diagline_histogram(
                 diagline_list.append((start_index[k], start_index[k] + k, diag_length[k])) 
                 diag_length[k] = 0
 
-    return diagline_list
+    return diagline_list    
 
 def _weight_function(int di, int dj, int scale, int order):
-    cdef float dist = max(abs(di), abs(dj)) / scale
+    cdef float dist = (abs(di) + abs(dj)) / scale
     if dist < 1:
         return np.exp(1. - 1. / (1 - dist ** order))
     else:
@@ -84,14 +84,18 @@ def _weighted_diagline_histogram(
 
 
     for (i_start, j_start, k) in diaglines:
-        i_mid = int(round((i_start + k) / 2.))
-        j_mid = int(round((j_start + k) / 2.))
+        i_mid = i_start + int(round(k / 2.))
+        j_mid = j_start + int(round(k / 2.))
 
-        for i in range( max(min(i_mid - scale, j_mid - scale), 0) , min(max(i_mid + scale, j_mid + scale), n_time)):
+        j = 0
+        for i in range( max(i_mid - scale, j_mid - scale, 0) , min(i_mid + scale, j_mid + scale, n_time)):
+            if j == 0: 
+                print(i)
+                j += 1
             di = i - i_mid
             dj = i - j_mid
 
-            if max(abs(di), abs(dj)) < scale:
+            if abs(di) + abs(dj) < scale:
                 diagline_series[i , k] += weights[scale + di, scale + dj]
 
 
