@@ -69,19 +69,17 @@ def _localized_vertline_histogram(int n_time, np.ndarray[INT8TYPE_t, ndim=2] rec
 
     for i in range(n_time):
         if k != 0:
-            if k > 1:
-                vertline_list.append((i_start, j_start, k))
+            vertline_list.append((i_start, j_start, k))
             k = 0
 
         for j in range(n_time):
-            if recmat[i, j] != 0:
+            if recmat[i, j] == 1 and i != j:
                 if k == 0:
                     i_start = i
                     j_start = j
                 k += 1
             elif k != 0:
-                if k > 1:
-                    vertline_list.append((i_start, j_start, k))
+                vertline_list.append((i_start, j_start, k))
                 k = 0
     return vertline_list
 
@@ -95,19 +93,17 @@ def _localized_white_vertline_histogram(
 
     for i in range(n_time):
         if k != 0:
-            if k > 1:
-                white_vertline_list.append((i_start, j_start, k))
+            white_vertline_list.append((i_start, j_start, k))
             k = 0
 
         for j in range(n_time):
-            if recmat[i, j] == 0 and i != j:
+            if recmat[i, j] == 0:
                 if k == 0:
                     i_start = i
                     j_start = j
                 k += 1
             elif k != 0:
-                if k > 1:
-                    white_vertline_list.append((i_start, j_start, k))
+                white_vertline_list.append((i_start, j_start, k))
                 k = 0
 
     return white_vertline_list
