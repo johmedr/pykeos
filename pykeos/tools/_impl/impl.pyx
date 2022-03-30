@@ -54,7 +54,9 @@ def _localized_diagline_histogram(
             # Else if (i, i + k) is not recurrent and we were in a 1-diagonal
             elif diag_length[k] > 0:
                 # Store diagonal 
-                diagline_list.append((start_index[k], start_index[k] + k, diag_length[k])) 
+                diagline_list.append((start_index[k], start_index[k] + k, diag_length[k]))     
+                diagline_list.append((start_index[k] + k, start_index[k], diag_length[k]))                 
+
                 diag_length[k] = 0
 
     return diagline_list    
