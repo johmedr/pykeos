@@ -21,6 +21,15 @@ ctypedef np.float32_t FLOAT32TYPE_t
 ctypedef np.float64_t FLOAT64TYPE_t
 
 
+
+def _weight_function(int di, int dj, int scale, int order):
+    cdef float dist = (abs(di) + abs(dj)) / scale
+    if dist < 1:
+        return np.exp(1. - 1. / (1 - dist ** order))
+    else:
+        return 0.
+
+
 def _localized_diagline_histogram(
     int n_time, np.ndarray[INT8TYPE_t, ndim=2] recmat):
 
@@ -50,57 +59,10 @@ def _localized_diagline_histogram(
 
     return diagline_list    
 
-def _weight_function(int di, int dj, int scale, int order):
-    cdef float dist = (abs(di) + abs(dj)) / scale
-    if dist < 1:
-        return np.exp(1. - 1. / (1 - dist ** order))
-    else:
-        return 0.
-
-
-def _weighted_diagline_histogram(
-    int n_time, list diaglines, np.ndarray[FLOATTYPE_t, ndim=2] diagline_series,int scale,  int order):
-
-    cdef int i, j, k, i_start, j_start, i_mid, j_mid
-    cdef int di, dj
-    k = 0
-    i_start = 0
-    j_start = 0
-    i_mid = 0
-    j_mid = 0
-    cdef np.ndarray[FLOATTYPE_t, ndim=2] weights = np.zeros([2 * scale + 1, 2 * scale + 1], dtype=np.float)
-    cdef float w = 0
-
-    weights[scale, scale] = _weight_function(0, 0, scale, order)
-
-    for i in range(scale): 
-        for j in range(scale):
-            w = _weight_function(i + 1, j + 1, scale, order)
-
-            weights[scale + i + 1, scale + j + 1] = w
-            weights[scale + i + 1, scale - j - 1] = w
-            weights[scale - i - 1, scale + j + 1] = w
-            weights[scale - i - 1, scale - j - 1] = w
-
-
-    for (i_start, j_start, k) in diaglines:
-        i_mid = i_start + int(round(k / 2.))
-        j_mid = j_start + int(round(k / 2.))
-
-        j = 0
-        for i in range( max(i_mid - scale, j_mid - scale, 0) , min(i_mid + scale, j_mid + scale, n_time)):
-            if j == 0: 
-                print(i)
-                j += 1
-            di = i - i_mid
-            dj = i - j_mid
-
-            if abs(di) + abs(dj) < scale:
-                diagline_series[i , k] += weights[scale + di, scale + dj]
-
 
 def _localized_vertline_histogram(int n_time, np.ndarray[INT8TYPE_t, ndim=2] recmat):
-    cdef int i, j, k, i_start, j_start = 0
+    cdef int i, j, k, i_start, j_start
+    i, j, k, i_start, j_start = 0, 0, 0, 0, 0
     cdef list vertline_list = []
 
     for i in range(n_time):
@@ -125,7 +87,8 @@ def _localized_vertline_histogram(int n_time, np.ndarray[INT8TYPE_t, ndim=2] rec
 def _localized_white_vertline_histogram(
     int n_time, np.ndarray[INT8TYPE_t, ndim=2] recmat):
 
-    cdef int i, j, k, i_start, j_start = 0
+    cdef int i, j, k, i_start, j_start
+    i, j, k, i_start, j_start = 0, 0, 0, 0, 0
     cdef list white_vertline_list = []
 
     for i in range(n_time):
@@ -135,14 +98,123 @@ def _localized_white_vertline_histogram(
             k = 0
 
         for j in range(n_time):
-            if recmat[i, j] == 0:
-                k += 1
+            if recmat[i, j] == 0 and i != j:
                 if k == 0:
                     i_start = i
                     j_start = j
+                k += 1
             elif k != 0:
                 if k > 1:
                     white_vertline_list.append((i_start, j_start, k))
                 k = 0
 
     return white_vertline_list
+
+
+
+def _weighted_diagline_histogram(
+    int n_time, list diaglines, np.ndarray[FLOATTYPE_t, ndim=2] diagline_series,int scale,  int order):
+
+    cdef int i, k, i_start, j_start, i_mid, j_mid, di, dj
+    i, k, i_start, j_start, i_mid, j_mid, di, dj = 0, 0, 0, 0, 0, 0, 0, 0
+
+    cdef np.ndarray[FLOATTYPE_t, ndim=2] weights = np.zeros([2 * scale + 1, 2 * scale + 1], dtype=np.float)
+    cdef float w = 0
+
+    # Compute the weight matrix on its finite support [-weight, weight]
+    weights[scale, scale] = _weight_function(0, 0, scale, order)
+    for i in range(scale): 
+        for j in range(scale):
+            w = _weight_function(i + 1, j + 1, scale, order)
+
+            weights[scale + i + 1, scale + j + 1] = w
+            weights[scale + i + 1, scale - j - 1] = w
+            weights[scale - i - 1, scale + j + 1] = w
+            weights[scale - i - 1, scale - j - 1] = w
+
+    # Iterate over diagonal
+    for (i_start, j_start, k) in diaglines:
+        # Find the center of the diagonal
+        i_mid = i_start + int(round(k / 2.))
+        j_mid = j_start + int(round(k / 2.))
+
+        # Iterate over affected points
+        for i in range( max(i_mid - scale, j_mid - scale, 0) , min(i_mid + scale, j_mid + scale, n_time)):
+            di = i - i_mid
+            dj = i - j_mid
+
+            if abs(di) + abs(dj) < scale:
+                # Count the weighted diagonal for timeseries i
+                diagline_series[i , k] += weights[scale + di, scale + dj]
+
+
+def _weighted_vertline_histogram(
+    int n_time, list vertlines, np.ndarray[FLOATTYPE_t, ndim=2] vertline_series, int scale,  int order):
+
+    cdef int i, k, i_start, j_start, i_mid, j_mid, di, dj
+    i, k, i_start, j_start, i_mid, j_mid, di, dj = 0, 0, 0, 0, 0, 0, 0, 0
+
+    cdef np.ndarray[FLOATTYPE_t, ndim=2] weights = np.zeros([2 * scale + 1, 2 * scale + 1], dtype=np.float)
+    cdef float w = 0
+
+    # Compute the weight matrix on its finite support [-weight, weight]
+    weights[scale, scale] = _weight_function(0, 0, scale, order)
+    for i in range(scale): 
+        for j in range(scale):
+            w = _weight_function(i + 1, j + 1, scale, order)
+
+            weights[scale + i + 1, scale + j + 1] = w
+            weights[scale + i + 1, scale - j - 1] = w
+            weights[scale - i - 1, scale + j + 1] = w
+            weights[scale - i - 1, scale - j - 1] = w
+
+    # Iterate over vertical
+    for (i_start, j_start, k) in vertlines:
+        # Find the center of the vertical
+        i_mid = i_start
+        j_mid = j_start + int(round(k / 2.))
+
+        # Iterate over affected points
+        for i in range( max(i_mid - scale, j_mid - scale, 0) , min(i_mid + scale, j_mid + scale, n_time)):
+            di = i - i_mid
+            dj = i - j_mid
+
+            if abs(di) + abs(dj) < scale:
+                # Count the weighted vertical for timeseries i
+                vertline_series[i , k] += weights[scale + di, scale + dj]
+
+
+def _weighted_white_vertline_histogram(
+    int n_time, list white_vertlines, np.ndarray[FLOATTYPE_t, ndim=2] white_vertline_series, int scale,  int order):
+
+    cdef int i, k, i_start, j_start, i_mid, j_mid, di, dj
+    i, k, i_start, j_start, i_mid, j_mid, di, dj = 0, 0, 0, 0, 0, 0, 0, 0
+
+    cdef np.ndarray[FLOATTYPE_t, ndim=2] weights = np.zeros([2 * scale + 1, 2 * scale + 1], dtype=np.float)
+    cdef float w = 0
+
+    # Compute the weight matrix on its finite support [-weight, weight]
+    weights[scale, scale] = _weight_function(0, 0, scale, order)
+    for i in range(scale): 
+        for j in range(scale):
+            w = _weight_function(i + 1, j + 1, scale, order)
+
+            weights[scale + i + 1, scale + j + 1] = w
+            weights[scale + i + 1, scale - j - 1] = w
+            weights[scale - i - 1, scale + j + 1] = w
+            weights[scale - i - 1, scale - j - 1] = w
+
+    # Iterate over vertical
+    for (i_start, j_start, k) in white_vertlines:
+        # Find the center of the vertical
+        i_mid = i_start
+        j_mid = j_start + int(round(k / 2.))
+
+        # Iterate over affected points
+        for i in range( max(i_mid - scale, j_mid - scale, 0) , min(i_mid + scale, j_mid + scale, n_time)):
+            di = i - i_mid
+            dj = i - j_mid
+
+            if abs(di) + abs(dj) < scale:
+                # Count the weighted vertical for timeseries i
+                white_vertline_series[i , k] += weights[scale + di, scale + dj]
