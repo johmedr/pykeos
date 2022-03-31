@@ -1,3 +1,10 @@
+"""
+This file is based on and extends the code in "pyunicorn/timeseries/_ext/src_numerics.pyx",
+written by Jonathan F. Donges (Potsdam-Institute for Climate Impact Research) and pyunicorn authors.
+The original code is available under BSD-3 licence at https://github.com/pik-copan/pyunicorn.
+"""
+
+
 cimport cython
 
 import numpy as np
