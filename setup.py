@@ -1,13 +1,15 @@
 from setuptools import find_packages, setup
+from Cython.Build import cythonize
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='pykeos',
-    version='0.0.2dev5',
+    version='0.0.3',
     author='Johan Medrano',
     python_requires='>=3.4',
+    ext_modules=cythonize('pykeos/tools/_impl/impl.pyx'),
     author_email='',
     description='',
     long_description=long_description,

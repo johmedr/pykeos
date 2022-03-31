@@ -56,7 +56,7 @@ def select_embedding_lag(
         if isinstance(data, np.ndarray):
             ts = pd.Series(data[:,axis])
         elif isinstance(data, AbstractBaseSys):
-            from ..tools.conv_utils import to_pandas_series
+            from ..tools.io_conversion import to_pandas_series
             ts = to_pandas_series(data, axis=axis)
         elif isinstance(data, pd.Series):
             ts = data.copy()

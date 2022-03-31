@@ -1,5 +1,6 @@
 import numpy as np
 from ..tools import n_ball_volume, n_sphere_area, delay_coordinates, lstsqr
+from ..tools.nd_utils import nd_function
 from .math_utils import _lstsqr_design_matrix
 from scipy.special import gamma
 from nolds.measures import poly_fit
@@ -10,7 +11,7 @@ import plotly.graph_objs as go
 
 
 def _fast_count_row_1d(x, traj, r, norm_p):
-    return np.count_nonzero(traj - x[np.newaxis, :] <= r)
+    return np.count_nonzero(np.linalg.norm(traj - x[np.newaxis, :], ord=norm_p, axis=1) <= r)
 
 
 def _fast_count_row(x, traj, r, norm_p):
@@ -64,22 +65,18 @@ def dsty_est(x, samples, r, norm_p=1):
 
 
 def reference_rule_alpha(p: Union[float, int], d: int):
-    # if d > 1:
-    #     return (
-    #                    ((d * n_ball_volume(d, p) * (2 * np.sqrt(np.pi))**d) / (d + 2))
-    #                  * ((3 * gamma((d + 2) / p + 1))/(2 * gamma((d-1)/p + 1) * gamma(3 / p + 1)))**2
-    #            ) ** (1./(d+4))
-    # else:
-    #     return (12 * np.sqrt(np.pi)) ** (1 / 5.)
     if d == 1:
-        return 1.843
+        alpha = (12. * np.sqrt(np.pi)) ** (1./5)
+    else:
+        alpha = (
+            (4. * (2. * np.sqrt(np.pi))**d * (3. * gamma(1+(d+2.)/p) * gamma(1+1./p))**2)
+            / ((d + 2.) * n_ball_volume(d, p) * (gamma(1+3./p) * gamma(1.+d/p)) ** 2)
+        ) ** (1./(d+4))
+    return alpha
 
-    return (
-        (4* (2 * np.sqrt(np.pi))**d *(3 * gamma(1+(d+2)/p) * gamma(1+1./p))**2) / ((d + 2) * n_ball_volume(d,p) * (gamma(3/p + 1) * gamma(d/p + 1))**2)
-    )**(1/(d+4))
 
-
-def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
+@nd_function
+def reference_rule(x: np.ndarray, dim: Union[int, str] = 'auto', norm_p: Union[int, float, str] = 2) -> float:
     n = x.shape[0]
     if dim == 'auto':
         d = 1
@@ -88,6 +85,8 @@ def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[in
 
     elif isinstance(dim, int):
         d = dim
+    else:
+        raise ValueError('dim must be "auto" or int')
 
     # print(d)
     std = np.sqrt(x.var(axis=0, ddof=1).mean())
@@ -95,10 +94,11 @@ def reference_rule(x: np.ndarray, dim:Union[int, str] = 'auto', norm_p: Union[in
     iqr = stats.iqr(x)
     scale = min(std, iqr/1.34)
 
-    gamma_n = n ** (-1./(d+4))
+    gamma_n = n ** (-1/(d+4.))
 
     if norm_p in ['manhattan', 'euclidean', 'supremum']:
         norm_p = ["manhattan", "euclidean"].index(norm_p) + 1 if norm_p != "supremum" else float("inf")
+
     alpha_p_d = reference_rule_alpha(norm_p, d)
     return gamma_n * alpha_p_d * scale
 
@@ -200,6 +200,7 @@ def grassberger_proccacia(x: np.ndarray, rvals=None, rmin=None, rmax=None, omit_
     else:
         return poly[0]
 
+
 def approximate_d2(x: object, r_opt: object = None, meaningfull_range: object = (0.5, 1.), n_evals: object = 10, base: object = 10.,
                    norm_p: float = float('inf'),
                    method: object = 'fit',
@@ -241,9 +242,7 @@ def approximate_d2(x: object, r_opt: object = None, meaningfull_range: object = 
             return poly[0]
 
 
-
 def corrdim_tangent_approx(x: np.ndarray, r_opt: float = None, norm_p=1, r_opt_ratio: float = 0.1, base: float = 10.0, full_output=False):
-
     if len(x.shape) == 1:
         x = x[:, np.newaxis]
 

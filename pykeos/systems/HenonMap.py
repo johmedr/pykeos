@@ -11,6 +11,6 @@ class HenonMap(DiscreteSys):
             return np.asarray([1. - a * x**2 + y, b * x])
 
         def rand_init():
-            return nd_rand_init((-1., 1.), (-1., 1.))
+            return nd_rand_init((-0.5, 0.5), (-0.5, 0.5))
 
         super().__init__(dim=2, map_func=map_func, init_func=rand_init, n_points=n_points)
