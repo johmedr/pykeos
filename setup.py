@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='pykeos',
-    version='0.0.2dev6',
+    version='0.0.3',
     author='Johan Medrano',
     python_requires='>=3.4',
     ext_modules=cythonize('pykeos/tools/_impl/impl.pyx'),
